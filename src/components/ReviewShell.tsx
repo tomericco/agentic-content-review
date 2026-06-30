@@ -37,16 +37,17 @@ export default function ReviewShell({ review, initialComments }: Props) {
   }, [decided, editedContent, review.content, comments.length, initialComments.length])
 
   async function handleApprove() {
-    await fetch(`/api/decide?slug=${review.slug}`, {
+    const res = await fetch(`/api/decide?slug=${review.slug}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ decision: 'approved', final_content: editedContent }),
     })
+    if (!res.ok) return
     setDecided(true)
     setCurrentStatus('approved')
   }
 
-  async function handleAddComment(comment: Comment) {
+  function handleAddComment(comment: Comment) {
     setComments((prev) => [...prev, comment])
   }
 
