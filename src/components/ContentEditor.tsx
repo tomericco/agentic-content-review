@@ -106,6 +106,12 @@ export default function ContentEditor({ content, editable, comments, onChange, o
       .forEach(() => editor.view.dispatch(editor.state.tr))
   }, [editor, comments])
 
+  // Keep editor editable state in sync with the prop
+  useEffect(() => {
+    if (!editor) return
+    editor.setEditable(editable)
+  }, [editor, editable])
+
   const handleCommentClick = useCallback(() => {
     if (!editor) return
     const { from, to } = editor.state.selection

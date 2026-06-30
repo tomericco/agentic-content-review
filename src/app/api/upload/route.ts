@@ -16,17 +16,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(validation, { status })
   }
 
-  const existingSlugs = await getExistingSlugs()
-  const slug = generateSlug(validation.data.title, existingSlugs)
+  try {
+    const existingSlugs = await getExistingSlugs()
+    const slug = generateSlug(validation.data.title, existingSlugs)
 
-  const review = await createReview(validation.data, slug)
-  notifyReviewer(review).catch(() => {}) // fire-and-forget — do NOT await, never block the response
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
+    const review = await createReview(validation.data, slug)
+    notifyReviewer(review).catch(() => {}) // fire-and-forget — do NOT await, never block the response
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
 
-  return NextResponse.json({
-    review_id: review.id,
-    slug: review.slug,
-    review_url: `${baseUrl}/${review.slug}`,
-    status: review.status,
-  }, { status: 201 })
+    return NextResponse.json({
+      review_id: review.id,
+      slug: review.slug,
+      review_url: `${baseUrl}/${review.slug}`,
+      status: review.status,
+    }, { status: 201 })
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json(
+      { error: 'Internal server error', code: 'internal_error' },
+      { status: 500 }
+    )
+  }
 }

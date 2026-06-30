@@ -10,39 +10,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing slug', code: 'missing_slug' }, { status: 400 })
   }
 
-  const review = await getReviewBySlug(slug)
-  if (!review) {
-    return NextResponse.json({ error: 'Review not found', code: 'review_not_found' }, { status: 404 })
-  }
-  if (review.status !== 'pending') {
-    return NextResponse.json({ error: 'Review already decided', code: 'review_already_decided' }, { status: 409 })
-  }
+  try {
+    const review = await getReviewBySlug(slug)
+    if (!review) {
+      return NextResponse.json({ error: 'Review not found', code: 'review_not_found' }, { status: 404 })
+    }
+    if (review.status !== 'pending') {
+      return NextResponse.json({ error: 'Review already decided', code: 'review_already_decided' }, { status: 409 })
+    }
 
-  let body: unknown
-  try { body = await req.json() } catch {
-    return NextResponse.json({ error: 'Invalid JSON', code: 'invalid_json' }, { status: 400 })
-  }
+    let body: unknown
+    try { body = await req.json() } catch {
+      return NextResponse.json({ error: 'Invalid JSON', code: 'invalid_json' }, { status: 400 })
+    }
 
-  const validation = validateDecide(body)
-  if ('error' in validation) {
-    return NextResponse.json(validation, { status: 400 })
-  }
+    const validation = validateDecide(body)
+    if ('error' in validation) {
+      return NextResponse.json(validation, { status: 400 })
+    }
 
-  const { decision, changes_requested } = validation.data
-  const comments = await getCommentsByReviewId(review.id)
+    const { decision, changes_requested } = validation.data
+    const comments = await getCommentsByReviewId(review.id)
 
-  if (decision === 'changes_requested' && comments.length === 0 && !changes_requested) {
+    if (decision === 'changes_requested' && comments.length === 0 && !changes_requested) {
+      return NextResponse.json(
+        { error: 'Provide at least one comment or general feedback when requesting changes', code: 'changes_requested_requires_feedback' },
+        { status: 400 }
+      )
+    }
+
+    const updated = await updateReviewDecision(review.id, validation.data)
+
+    notifyAuthor(updated, comments).catch(() => {})
+
+    revalidatePath(`/${slug}`)
+
+    return NextResponse.json({ status: updated.status })
+  } catch (err) {
+    console.error(err)
     return NextResponse.json(
-      { error: 'Provide at least one comment or general feedback when requesting changes', code: 'changes_requested_requires_feedback' },
-      { status: 400 }
+      { error: 'Internal server error', code: 'internal_error' },
+      { status: 500 }
     )
   }
-
-  const updated = await updateReviewDecision(review.id, validation.data)
-
-  notifyAuthor(updated, comments).catch(() => {})
-
-  revalidatePath(`/${slug}`)
-
-  return NextResponse.json({ status: updated.status })
 }
