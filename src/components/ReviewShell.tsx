@@ -24,6 +24,7 @@ export default function ReviewShell({ review, initialComments }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [decided, setDecided] = useState(review.status !== 'pending')
   const [currentStatus, setCurrentStatus] = useState(review.status)
+  const [copied, setCopied] = useState(false)
 
   // Warn on unsaved changes
   useEffect(() => {
@@ -45,6 +46,14 @@ export default function ReviewShell({ review, initialComments }: Props) {
     if (!res.ok) return
     setDecided(true)
     setCurrentStatus('approved')
+  }
+
+  async function handleCopyForAgent() {
+    const res = await fetch(`/api/review/${review.slug}/summary`)
+    const text = await res.text()
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   function handleAddComment(comment: Comment) {
@@ -108,6 +117,20 @@ export default function ReviewShell({ review, initialComments }: Props) {
                 value={reviewerNote}
                 onChange={(e) => setReviewerNote(e.target.value)}
               />
+            </div>
+          )}
+
+          {decided && (
+            <div className="flex flex-col gap-2 items-start">
+              <p className="text-[13px] text-[#6b7280] font-ui">
+                Paste this into your agent to continue:
+              </p>
+              <button
+                onClick={handleCopyForAgent}
+                className="px-4 py-2 text-sm font-medium bg-[#000000] text-white rounded-lg hover:bg-[#1f2937] transition-colors font-ui"
+              >
+                {copied ? 'Copied!' : 'Copy summary for agent'}
+              </button>
             </div>
           )}
         </div>

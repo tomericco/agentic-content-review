@@ -1,0 +1,42 @@
+import { Resend } from 'resend'
+import type { Review, Comment } from '@/types'
+import { buildSummary } from './summary'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+const FROM = `Content Review <${process.env.RESEND_FROM_EMAIL ?? 'noreply@example.com'}>`
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? ''
+
+export async function notifyReviewer(review: Review): Promise<void> {
+  if (!review.reviewer_email || !process.env.RESEND_API_KEY) return
+  await resend.emails.send({
+    from: FROM,
+    to: review.reviewer_email,
+    subject: `Review requested: ${review.title}`,
+    html: `
+      <p>An AI agent has submitted content for your review.</p>
+      <p><strong>${review.title}</strong></p>
+      ${review.context ? `<p><em>Context: ${review.context}</em></p>` : ''}
+      <p><a href="${BASE_URL}/${review.slug}">Open review →</a></p>
+      <p style="color:#6b7280;font-size:12px">No account needed — just click the link.</p>
+    `,
+  })
+}
+
+export async function notifyAuthor(review: Review, comments: Comment[]): Promise<void> {
+  if (!process.env.RESEND_API_KEY) return
+  const summary = buildSummary(review, comments)
+  const statusLabel = review.status === 'approved' ? 'Approved' : 'Changes Requested'
+
+  await resend.emails.send({
+    from: FROM,
+    to: review.author_email,
+    subject: `Review complete: ${review.title} — ${statusLabel}`,
+    html: `
+      <p>Your content has been reviewed.</p>
+      <p><strong>${review.title}</strong> — ${statusLabel}</p>
+      <p>Copy the summary below and paste it into your agent to continue:</p>
+      <pre style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;font-size:13px;white-space:pre-wrap">${summary}</pre>
+      <p><a href="${BASE_URL}/${review.slug}">View full review →</a></p>
+    `,
+  })
+}
