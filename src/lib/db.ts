@@ -100,3 +100,20 @@ export async function getCommentsByReviewId(reviewId: string): Promise<Comment[]
   if (error) throw new Error(`DB error fetching comments: ${error.message}`)
   return (data ?? []) as Comment[]
 }
+
+export async function resubmitReview(id: string, content: string): Promise<Review> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .update({
+      content,
+      status: 'pending',
+      final_content: null,
+      changes_requested: null,
+      decided_at: null,
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw new Error(`DB error resubmitting review: ${error.message}`)
+  return data as Review
+}
