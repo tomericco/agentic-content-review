@@ -3,6 +3,7 @@ import type { ContentType, AccessMode } from '@/types'
 const SUPPORTED_CONTENT_TYPES: ContentType[] = ['long_form']
 const VALID_ACCESS_MODES: AccessMode[] = ['comment', 'comment_and_edit']
 const MAX_CONTENT_BYTES = 200 * 1024
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export interface UploadInput {
   title: string
@@ -29,6 +30,10 @@ function required(body: Record<string, unknown>, field: string): string | null {
   return null
 }
 
+function isValidEmail(value: unknown): boolean {
+  return typeof value === 'string' && EMAIL_RE.test(value)
+}
+
 export function validateUpload(body: unknown): ValidationResult<UploadInput> {
   if (!body || typeof body !== 'object') {
     return { error: 'Request body must be a JSON object', code: 'invalid_body' }
@@ -39,6 +44,14 @@ export function validateUpload(body: unknown): ValidationResult<UploadInput> {
     if (required(b, field)) {
       return { error: `Missing required field: ${field}`, code: `missing_field:${field}` }
     }
+  }
+
+  if (!isValidEmail(b.author_email)) {
+    return { error: 'author_email must be a valid email address', code: 'invalid_email:author_email' }
+  }
+
+  if (b.reviewer_email !== undefined && !isValidEmail(b.reviewer_email)) {
+    return { error: 'reviewer_email must be a valid email address', code: 'invalid_email:reviewer_email' }
   }
 
   if (!SUPPORTED_CONTENT_TYPES.includes(b.content_type as ContentType)) {

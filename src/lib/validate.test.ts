@@ -44,6 +44,26 @@ describe('validateUpload', () => {
     const result = validateUpload({ ...validUpload, content: 'x'.repeat(200 * 1024 + 1) })
     expect('error' in result && result.code).toBe('content_too_large')
   })
+
+  it('rejects malformed author_email', () => {
+    const result = validateUpload({ ...validUpload, author_email: 'not-an-email' })
+    expect('error' in result && result.code).toBe('invalid_email:author_email')
+  })
+
+  it('accepts valid reviewer_email', () => {
+    const result = validateUpload({ ...validUpload, reviewer_email: 'reviewer@example.com' })
+    expect('data' in result).toBe(true)
+  })
+
+  it('rejects malformed reviewer_email', () => {
+    const result = validateUpload({ ...validUpload, reviewer_email: 'not-an-email' })
+    expect('error' in result && result.code).toBe('invalid_email:reviewer_email')
+  })
+
+  it('accepts omitted reviewer_email', () => {
+    const result = validateUpload(validUpload)
+    expect('data' in result).toBe(true)
+  })
 })
 
 describe('validateDecide', () => {
