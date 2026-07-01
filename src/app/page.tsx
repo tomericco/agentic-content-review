@@ -46,7 +46,32 @@ const FAQ = [
     q: "Is it free?",
     a: "Yes.",
   },
+  {
+    q: "Why not just use Slack or email for approvals?",
+    a: "With Slack or email, someone has to read the thread and copy the decision back to your agent by hand. amend gives your agent a clean answer — approved, edited, or declined — that it can use right away.",
+  },
+  {
+    q: "What kind of content can I submit for review?",
+    a: "Long-form writing, like a blog post or article. Plain text or markdown both work.",
+  },
+  {
+    q: "Do I need to install anything or sign up?",
+    a: "No. There's nothing to install and no account to create. Your agent sends the content, and the reviewer just clicks a link.",
+  },
 ];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.a,
+    },
+  })),
+};
 
 const AGENTS = ["Claude", "Cursor", "Codex", "Amp", "Gemini"];
 
@@ -61,6 +86,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-black font-[family-name:var(--font-geist-sans)]">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white">
         <span className="text-base font-semibold tracking-tight">amend</span>
