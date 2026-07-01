@@ -82,6 +82,32 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
+const quickStartJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  name: "Get a human decision on AI-generated content",
+  step: [
+    {
+      "@type": "HowToStep",
+      position: 1,
+      name: "Submit content",
+      text: "POST your content to /api/upload. You get back an amend_url.",
+    },
+    {
+      "@type": "HowToStep",
+      position: 2,
+      name: "Share with reviewer",
+      text: "Share the amend_url with the reviewer. They click it, read the content, leave comments, edit inline, and decide.",
+    },
+    {
+      "@type": "HowToStep",
+      position: 3,
+      name: "Receive the decision",
+      text: "Get the decision back via webhook — or poll GET /api/amend/[slug]/summary and paste it into your next prompt.",
+    },
+  ],
+};
+
 const NAV_SECTIONS = [
   {
     title: "Getting Started",
@@ -104,6 +130,11 @@ const NAV_SECTIONS = [
 export default function DocsPage() {
   return (
     <div className="min-h-screen bg-white text-black font-[family-name:var(--font-geist-sans)]">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(quickStartJsonLd) }}
+      />
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-zinc-100">
         <Link href="/" className="text-base font-semibold tracking-tight">
