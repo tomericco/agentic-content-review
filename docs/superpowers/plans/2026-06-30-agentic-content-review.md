@@ -1982,7 +1982,7 @@ export default function ContentEditor({ content, editable, comments, onChange, o
           anchorText={pendingComment.anchorText}
           position={pendingComment.position}
           onSubmit={submitComment}
-          onClose={() => setPendingComment(null)}
+          // onClose={() => setPendingComment(null)}
         />
       )}
     </div>

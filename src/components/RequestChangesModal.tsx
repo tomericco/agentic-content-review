@@ -56,7 +56,7 @@ export default function RequestChangesModal({ comments, reviewSlug, onClose, onS
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 font-ui">
               Inline comments ({comments.length})
             </p>
-            <ul className="space-y-2 max-h-36 overflow-y-auto">
+            <ul className="space-y-2 max-h-56 overflow-y-auto">
               {comments.map((c) => (
                 <li key={c.id} className="text-sm text-gray-700 bg-gray-50 rounded-md px-3 py-2 font-ui">
                   <span className="text-gray-400 italic">&quot;{c.anchor_text.slice(0, 40)}{c.anchor_text.length > 40 ? '…' : ''}&quot;</span>

@@ -22,6 +22,8 @@ export default function ReviewShell({ review, initialComments }: Props) {
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const [comments, setComments] = useState<Comment[]>(initialComments)
   const [editedContent, setEditedContent] = useState(review.content)
+  const [editorVersion, setEditorVersion] = useState(0)
+  const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
   const [showRequestChanges, setShowRequestChanges] = useState(false)
   const [showApprove, setShowApprove] = useState(false)
   const [decided, setDecided] = useState(review.status !== 'pending')
@@ -31,12 +33,12 @@ export default function ReviewShell({ review, initialComments }: Props) {
   useEffect(() => {
     const hasChanges =
       !decided &&
-      (editedContent !== review.content || comments.length > initialComments.length)
+      editedContent !== review.content
     if (!hasChanges) return
     function handleBeforeUnload(e: BeforeUnloadEvent) { e.preventDefault() }
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [decided, editedContent, review.content, comments.length, initialComments.length])
+  }, [decided, editedContent, review.content])
 
   async function handleCopyForAgent() {
     const res = await fetch(`/api/review/${review.slug}/summary`)
@@ -48,6 +50,14 @@ export default function ReviewShell({ review, initialComments }: Props) {
 
   function handleAddComment(comment: Comment) {
     setComments((prev) => [...prev, comment])
+  }
+
+  function handleUpdateComment(updated: Comment) {
+    setComments((prev) => prev.map((c) => String(c.id) === String(updated.id) ? updated : c))
+  }
+
+  function handleDeleteComment(id: string) {
+    setComments((prev) => prev.filter((c) => String(c.id) !== id))
   }
 
   const words = wordCount(editedContent)
@@ -83,8 +93,11 @@ export default function ReviewShell({ review, initialComments }: Props) {
           content={editedContent}
           editable={review.access === 'comment_and_edit' && !decided}
           comments={comments}
+          activeCommentId={activeCommentId}
           onChange={setEditedContent}
           onAddComment={handleAddComment}
+          onEditorUpdate={() => setEditorVersion(v => v + 1)}
+          onActiveCommentChange={setActiveCommentId}
           reviewSlug={review.slug}
         />
 
@@ -100,7 +113,16 @@ export default function ReviewShell({ review, initialComments }: Props) {
         )}
 
         {/* Marginal comments float to the right of the article */}
-        <MarginalComments comments={comments} containerRef={editorContainerRef} />
+        <MarginalComments
+          comments={comments}
+          containerRef={editorContainerRef}
+          editorVersion={editorVersion}
+          activeCommentId={activeCommentId}
+          reviewSlug={review.slug}
+          onUpdateComment={handleUpdateComment}
+          onDeleteComment={handleDeleteComment}
+          onSetActiveComment={setActiveCommentId}
+        />
       </div>
 
       {showApprove && (

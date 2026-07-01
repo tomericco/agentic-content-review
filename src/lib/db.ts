@@ -90,6 +90,22 @@ export async function createComment(reviewId: string, input: CommentInput): Prom
   return data as Comment
 }
 
+export async function updateComment(id: string, body: string): Promise<Comment> {
+  const { data, error } = await supabase
+    .from('comments')
+    .update({ body })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw new Error(`DB error updating comment: ${error.message}`)
+  return data as Comment
+}
+
+export async function deleteComment(id: string): Promise<void> {
+  const { error } = await supabase.from('comments').delete().eq('id', id)
+  if (error) throw new Error(`DB error deleting comment: ${error.message}`)
+}
+
 export async function getCommentsByReviewId(reviewId: string): Promise<Comment[]> {
   const { data, error } = await supabase
     .from('comments')

@@ -1,7 +1,9 @@
 'use client'
 
+import { formatDistanceToNow, format } from 'date-fns'
 import type { Review } from '@/types'
 import Button from './Button'
+import Tooltip from './Tooltip'
 
 interface Props {
   review: Review
@@ -12,11 +14,8 @@ interface Props {
 
 export default function DecisionHeader({ review, onApprove, onRequestChanges, wordCount }: Props) {
   const isPending = review.status === 'pending'
-
-  const formattedDate = new Date(review.created_at).toLocaleString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-    hour: 'numeric', minute: '2-digit',
-  })
+  const timeAgo = formatDistanceToNow(new Date(review.created_at), { addSuffix: true })
+  const fullDate = format(new Date(review.created_at), 'MMM d, yyyy, h:mm a')
 
   return (
     <div className="flex flex-col gap-2 pt-4 items-center w-full bg-white">
@@ -44,7 +43,9 @@ export default function DecisionHeader({ review, onApprove, onRequestChanges, wo
         <div className="flex items-center gap-2">
           {review.agent_model && <span>{review.agent_model}</span>}
           {review.agent_model && <span className="text-[#9ca3af]">•</span>}
-          <span>{formattedDate}</span>
+          <Tooltip content={fullDate}>
+            Submitted {timeAgo}
+          </Tooltip>
         </div>
         <span>{wordCount.toLocaleString()} words</span>
       </div>

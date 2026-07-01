@@ -36,8 +36,8 @@ export default function CommentPopover({ anchorText, viewportTop, onSubmit, onCl
     onClose()
   }
 
-  // Clamp so the popover doesn't go off the bottom of the viewport
-  const top = Math.min(viewportTop, window.innerHeight - 200)
+  // Clamp: don't go above the header (~100px) or off the bottom
+  const top = Math.max(100, Math.min(viewportTop, window.innerHeight - 220))
 
   return (
     <div
