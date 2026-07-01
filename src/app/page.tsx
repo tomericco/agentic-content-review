@@ -12,11 +12,8 @@ Required fields:
 - content: string (markdown or plain text)
 - content_type: "long_form"
 - access: "comment_and_edit" or "comment"
-- author_email: string
-- reviewer_email: string
-- webhook_url: string (where to send the decision)
 
-The response includes an amend_url. Share it with the reviewer. When they decide, the webhook fires with the final content, all comments, and the decision status.`;
+The response includes an amend_url. Share it with the reviewer. When they finish with their review, visit https://amend.to/[slug]/summary to get their feedback.`;
 
 const FAQ = [
   {
