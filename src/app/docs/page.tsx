@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const BASE = "https://amend.to";
@@ -127,7 +127,40 @@ const NAV_SECTIONS = [
   },
 ];
 
+const SECTION_IDS = NAV_SECTIONS.flatMap((section) =>
+  section.links.map((link) => link.href.slice(1))
+);
+
 export default function DocsPage() {
+  const [activeId, setActiveId] = useState(SECTION_IDS[0]);
+
+  useEffect(() => {
+    const NAV_OFFSET = 110; // fixed nav height + a little breathing room
+
+    function updateActiveSection() {
+      let current = SECTION_IDS[0];
+      for (const id of SECTION_IDS) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top - NAV_OFFSET <= 0) {
+          current = id;
+        }
+      }
+      setActiveId(current);
+    }
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    return () => window.removeEventListener("scroll", updateActiveSection);
+  }, []);
+
+  function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    e.preventDefault();
+    const id = href.slice(1);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveId(id);
+    history.replaceState(null, "", href);
+  }
+
   return (
     <div className="min-h-screen bg-white text-black font-[family-name:var(--font-geist-sans)]">
       <script
@@ -156,16 +189,24 @@ export default function DocsPage() {
                     {section.title}
                   </p>
                   <ul className="flex flex-col gap-1">
-                    {section.links.map((link) => (
-                      <li key={link.href}>
-                        <a
-                          href={link.href}
-                          className="text-sm text-zinc-600 hover:text-black"
-                        >
-                          {link.label}
-                        </a>
-                      </li>
-                    ))}
+                    {section.links.map((link) => {
+                      const isActive = activeId === link.href.slice(1);
+                      return (
+                        <li key={link.href}>
+                          <a
+                            href={link.href}
+                            onClick={(e) => handleNavClick(e, link.href)}
+                            className={
+                              isActive
+                                ? "text-sm font-semibold text-black"
+                                : "text-sm text-zinc-600 hover:text-black"
+                            }
+                          >
+                            {link.label}
+                          </a>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ))}
@@ -176,7 +217,7 @@ export default function DocsPage() {
           <div className="min-w-0 flex-1 pt-2.5">
             <h1 className="sr-only">amend Documentation</h1>
 
-            <section id="overview">
+            <section id="overview" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-zinc-950 mt-0 mb-4 scroll-mt-24">
                 Overview
               </h2>
@@ -192,7 +233,7 @@ export default function DocsPage() {
               </p>
             </section>
 
-            <section id="quick-start">
+            <section id="quick-start" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
                 Quick start
               </h2>
@@ -214,7 +255,7 @@ export default function DocsPage() {
               </ol>
             </section>
 
-            <section id="upload">
+            <section id="upload" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
                 POST /api/upload
               </h2>
@@ -258,7 +299,7 @@ export default function DocsPage() {
               <CodeBlock code={UPLOAD_RESPONSE} />
             </section>
 
-            <section id="summary">
+            <section id="summary" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
                 GET /api/amend/[slug]/summary
               </h2>
@@ -274,7 +315,7 @@ export default function DocsPage() {
               <CodeBlock code={SUMMARY_RESPONSE} />
             </section>
 
-            <section id="webhook">
+            <section id="webhook" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
                 Webhook payload
               </h2>
@@ -298,7 +339,7 @@ export default function DocsPage() {
               </p>
             </section>
 
-            <section id="access">
+            <section id="access" className="scroll-mt-24">
               <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
                 Access control
               </h2>
