@@ -1,6 +1,15 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getReviewBySlug, getCommentsByReviewId } from '@/lib/db'
 import ReviewShell from '@/components/ReviewShell'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+  },
+}
 
 export default async function ReviewPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
