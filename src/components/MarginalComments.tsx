@@ -24,7 +24,6 @@ export default function MarginalComments({ comments, containerRef }: Props) {
     const container = containerRef.current
 
     const result: PositionedComment[] = comments.map((comment) => {
-      // Walk text nodes inside the editor to find the anchor text
       const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
       let top = 0
       while (walker.nextNode()) {
@@ -43,7 +42,6 @@ export default function MarginalComments({ comments, containerRef }: Props) {
       return { ...comment, top }
     })
 
-    // Sort by vertical position, then prevent overlap (min 88px gap)
     result.sort((a, b) => a.top - b.top)
     for (let i = 1; i < result.length; i++) {
       if (result[i].top < result[i - 1].top + 88) {
@@ -57,12 +55,11 @@ export default function MarginalComments({ comments, containerRef }: Props) {
   if (positioned.length === 0) return null
 
   return (
-    // Sits to the right of the 680px article column; left offset matches article width + gap
-    <div className="relative ml-8 flex-1 shrink-0">
+    <div className="absolute left-[calc(100%+2rem)] top-0 w-52 pointer-events-none">
       {positioned.map((c) => (
         <div
           key={c.id}
-          className="absolute left-0 w-52 bg-white border border-[#e5e7eb] rounded-xl shadow-sm p-3"
+          className="absolute left-0 w-52 bg-white border border-[#e5e7eb] rounded-md shadow-sm p-3 pointer-events-auto"
           style={{ top: c.top }}
         >
           <p className="text-[11px] text-[#6b7280] italic mb-1 truncate font-ui">

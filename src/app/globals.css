@@ -32,3 +32,12 @@ body {
 @utility font-content {
   font-family: var(--font-instrument-sans), sans-serif;
 }
+
+@keyframes toolbar-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@utility animate-toolbar-in {
+  animation: toolbar-in 120ms ease-out;
+}

@@ -24,11 +24,9 @@ interface PendingComment {
   anchorText: string
   anchorStart: number
   anchorEnd: number
-  position: { x: number; y: number }
+  viewportTop: number  // viewport-coordinate top of the selection
 }
 
-// Tiptap extension that decorates anchor_text spans with a subtle orange highlight.
-// Accepts a ref so the plugin always reads the current comments list, not a stale closure.
 const anchorHighlightKey = new PluginKey('anchorHighlight')
 
 function buildAnchorHighlightExtension(commentsRef: { current: Comment[] }) {
@@ -43,17 +41,16 @@ function buildAnchorHighlightExtension(commentsRef: { current: Comment[] }) {
               const decos: Decoration[] = []
               const doc = state.doc
               commentsRef.current.forEach(({ anchor_text }) => {
-                const searchText = anchor_text
                 doc.descendants((node, pos) => {
                   if (!node.isText || !node.text) return
-                  let idx = node.text.indexOf(searchText)
+                  let idx = node.text.indexOf(anchor_text)
                   while (idx !== -1) {
                     decos.push(
-                      Decoration.inline(pos + idx, pos + idx + searchText.length, {
+                      Decoration.inline(pos + idx, pos + idx + anchor_text.length, {
                         class: 'bg-orange-100 rounded-sm',
                       })
                     )
-                    idx = node.text.indexOf(searchText, idx + 1)
+                    idx = node.text.indexOf(anchor_text, idx + 1)
                   }
                 })
               })
@@ -69,7 +66,24 @@ function buildAnchorHighlightExtension(commentsRef: { current: Comment[] }) {
 export default function ContentEditor({ content, editable, comments, onChange, onAddComment, reviewSlug }: Props) {
   const [pendingComment, setPendingComment] = useState<PendingComment | null>(null)
   const commentsRef = useRef<Comment[]>(comments)
-  commentsRef.current = comments  // always reflects latest prop value
+  // Saved from onSelectionUpdate — Tiptap positions + text
+  const savedSelectionRef = useRef<{ from: number; to: number; text: string } | null>(null)
+  // Saved from mouseup — viewport-coordinate DOMRect of the selection
+  const selectionRectRef = useRef<DOMRect | null>(null)
+  commentsRef.current = comments
+
+  // Capture the DOM rect of the selection whenever the user finishes a mouse selection.
+  // This runs at mouseup time, BEFORE any toolbar button interaction can disturb focus.
+  useEffect(() => {
+    function handleMouseUp() {
+      const sel = window.getSelection()
+      if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return
+      const rect = sel.getRangeAt(0).getBoundingClientRect()
+      if (rect.width > 0) selectionRectRef.current = rect
+    }
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => document.removeEventListener('mouseup', handleMouseUp)
+  }, [])
 
   const editor = useEditor({
     extensions: [
@@ -89,16 +103,24 @@ export default function ContentEditor({ content, editable, comments, onChange, o
           '[&_p]:text-[14px] [&_p]:text-[#000000] [&_p]:leading-[1.5] [&_p]:mb-6',
           '[&_img]:rounded-xl [&_img]:w-full [&_img]:h-[360px] [&_img]:object-cover [&_img]:mb-6',
           '[&_strong]:font-semibold [&_em]:italic',
+          '[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-6',
+          '[&_li]:text-[14px] [&_li]:text-[#000000] [&_li]:leading-[1.5] [&_li]:mb-1',
         ].join(' '),
       },
     },
-    onUpdate({ editor }) {
+    onSelectionUpdate({ editor: ed }) {
+      const { from, to } = ed.state.selection
+      if (from === to) return
+      const text = ed.state.doc.textBetween(from, to, ' ')
+      if (!text.trim()) return
+      savedSelectionRef.current = { from, to, text }
+    },
+    onUpdate({ editor: ed }) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onChange((editor.storage as any).markdown.getMarkdown())
+      onChange((ed.storage as any).markdown.getMarkdown())
     },
   })
 
-  // Re-render decorations whenever the comments list changes
   useEffect(() => {
     if (!editor) return
     editor.extensionManager.extensions
@@ -106,31 +128,34 @@ export default function ContentEditor({ content, editable, comments, onChange, o
       .forEach(() => editor.view.dispatch(editor.state.tr))
   }, [editor, comments])
 
-  // Keep editor editable state in sync with the prop
   useEffect(() => {
     if (!editor) return
     editor.setEditable(editable)
   }, [editor, editable])
 
   const handleCommentClick = useCallback(() => {
-    if (!editor) return
-    const { from, to } = editor.state.selection
-    if (from === to) return
+    // Try to get selection info — fall back to empty strings/defaults so the
+    // box always appears even if selection state was lost.
+    const saved = savedSelectionRef.current
+    const anchorText = saved?.text ?? ''
+    const anchorStart = saved?.from ?? 0
+    const anchorEnd = saved?.to ?? 0
 
-    const anchorText = editor.state.doc.textBetween(from, to, ' ')
-    if (!anchorText.trim()) return
+    // Try rect sources in order; if all fail, park at top of visible area.
+    let viewportTop = 120
+    const rect = selectionRectRef.current
+    if (rect && rect.height > 0) {
+      viewportTop = rect.top
+    } else {
+      const sel = window.getSelection()
+      if (sel && sel.rangeCount > 0) {
+        const liveRect = sel.getRangeAt(0).getBoundingClientRect()
+        if (liveRect.height > 0) viewportTop = liveRect.top
+      }
+    }
 
-    // Get position of the selection for the popover
-    const domSelection = window.getSelection()
-    const rect = domSelection?.getRangeAt(0)?.getBoundingClientRect()
-
-    setPendingComment({
-      anchorText,
-      anchorStart: from,
-      anchorEnd: to,
-      position: { x: rect?.left ?? 0, y: rect?.bottom ?? 0 },
-    })
-  }, [editor])
+    setPendingComment({ anchorText, anchorStart, anchorEnd, viewportTop })
+  }, [])
 
   async function submitComment(body: string) {
     if (!pendingComment) return
@@ -152,7 +177,7 @@ export default function ContentEditor({ content, editable, comments, onChange, o
   if (!editor) return null
 
   return (
-    <div className="w-full relative">
+    <div className="w-full">
       <FloatingToolbar
         editor={editor}
         editable={editable}
@@ -164,7 +189,7 @@ export default function ContentEditor({ content, editable, comments, onChange, o
       {pendingComment && (
         <CommentPopover
           anchorText={pendingComment.anchorText}
-          position={pendingComment.position}
+          viewportTop={pendingComment.viewportTop}
           onSubmit={submitComment}
           onClose={() => setPendingComment(null)}
         />

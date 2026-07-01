@@ -1,65 +1,169 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+const AGENT_INSTRUCTIONS = `To submit content for human review, POST to:
+https://agentic-content-review.vercel.app/api/upload
+
+Required fields:
+- title: string
+- content: string (markdown or plain text)
+- content_type: "long_form"
+- access: "comment_and_edit" or "comment"
+- author_email: string
+- reviewer_email: string
+- webhook_url: string (where to send the decision)
+
+The response includes a review_url. Share it with the reviewer. When they decide, the webhook fires with the final content, all comments, and the decision status.`;
+
+const FAQ = [
+  {
+    q: "What is this?",
+    a: "A review layer between AI agents and publishing. Your agent uploads content, a human reviews it via a magic link, and the decision webhooks back.",
+  },
+  {
+    q: "Who's the reviewer?",
+    a: "Anyone you send the link to. No account, no install, no friction — they click and review.",
+  },
+  {
+    q: "Can reviewers edit the content?",
+    a: 'Yes. Set access to "comment_and_edit" and reviewers can edit inline. Set it to "comment" for read-only with comments.',
+  },
+  {
+    q: "What agents and tools does this work with?",
+    a: "Any agent that can make HTTP requests — Claude Code, Cursor, Codex, Amp, or anything else.",
+  },
+  {
+    q: "How does my agent get the decision?",
+    a: "Via webhook, fired immediately when the reviewer decides. Or poll GET /api/review/[slug]/summary for a markdown summary ready to paste into your next prompt.",
+  },
+  {
+    q: "Who can access the review link?",
+    a: "Anyone with the link. There's no authentication — the magic link is the access control.",
+  },
+  {
+    q: "Is it free?",
+    a: "Yes.",
+  },
+];
+
+const AGENTS = ["Claude", "Cursor", "Codex", "Amp", "Gemini"];
 
 export default function Home() {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    await navigator.clipboard.writeText(AGENT_INSTRUCTIONS);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-white text-black font-[family-name:var(--font-geist-sans)]">
+      {/* Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white">
+        <span className="text-base font-semibold tracking-tight">review</span>
+        <Link href="/docs" className="text-sm font-medium text-zinc-500 hover:text-black">
+          Docs
+        </Link>
+      </nav>
+
+      {/* Hero */}
+      <main className="pt-40 pb-32 px-8 lg:pl-[35%] lg:pr-24">
+        <h1 className="text-5xl leading-[1.05] font-bold tracking-tight mb-10 max-w-md">
+          Human review,
+          <br />
+          for AI content.
+        </h1>
+
+        {/* Steps */}
+        <div className="flex flex-col gap-4 mb-12 max-w-md">
+          {[
+            "Your agent POSTs content to the API — title, body, webhook URL",
+            "The reviewer gets a magic link — no login, no install",
+            "They approve, edit, or request changes — the decision webhooks back",
+          ].map((step, i) => (
+            <div key={i} className="flex items-start gap-3.5">
+              <span className="mt-0.5 shrink-0 w-5 h-5 bg-black text-white text-[10px] font-bold flex items-center justify-center">
+                {i + 1}
+              </span>
+              <p className="text-base text-gray-700 leading-snug">{step}</p>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* CTA row */}
+        <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-20">
+          <div className="flex flex-col gap-2.5">
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+              For agents
+            </p>
+            <button
+              onClick={copy}
+              className="flex items-center gap-2.5 bg-black text-white text-sm px-5 py-3 whitespace-nowrap rounded-md cursor-pointer"
+            >
+              {copied ? (
+                "Copied! Paste into your agent"
+              ) : (
+                <>
+                  Copy instructions for my agent
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="1" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+              Works with every agent
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {AGENTS.map((name) => (
+                <span
+                  key={name}
+                  className="text-xs font-medium text-gray-500 border border-gray-200 px-2.5 py-1.5 leading-none"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
+
+      {/* Divider */}
+      <hr className="mx-8 lg:ml-[35%] lg:mr-24 border-gray-200" />
+
+      {/* FAQ */}
+      <section className="py-24 px-8 lg:pl-[35%] lg:pr-24">
+        <h2 className="text-4xl font-bold tracking-tight mb-12">FAQ</h2>
+        <div className="flex flex-col gap-9 max-w-lg">
+          {FAQ.map(({ q, a }) => (
+            <div key={q}>
+              <p className="text-base font-semibold mb-1.5">{q}</p>
+              <p className="text-base text-gray-600 leading-relaxed">{a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="px-8 lg:pl-[35%] lg:pr-24 py-10 border-t border-gray-100">
+        <p className="text-sm text-gray-400">
+          © 2026 review — human review for AI agents
+        </p>
+      </footer>
     </div>
   );
 }

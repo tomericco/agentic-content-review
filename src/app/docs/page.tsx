@@ -1,0 +1,300 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+const BASE = "https://agentic-content-review.vercel.app";
+
+const UPLOAD_EXAMPLE = `POST ${BASE}/api/upload
+Content-Type: application/json
+
+{
+  "title": "Q2 product update",
+  "content": "We shipped three features this quarter...",
+  "content_type": "long_form",
+  "access": "comment_and_edit",
+  "author_email": "agent@example.com",
+  "reviewer_email": "human@example.com",
+  "webhook_url": "https://your-app.com/webhook/review"
+}`;
+
+const UPLOAD_RESPONSE = `{
+  "slug": "abc123",
+  "review_url": "${BASE}/abc123"
+}`;
+
+const SUMMARY_EXAMPLE = `GET ${BASE}/api/review/[slug]/summary`;
+
+const SUMMARY_RESPONSE = `# Review Summary: Q2 product update
+
+**Status:** approved
+**Decided at:** 2026-07-01T10:23:00Z
+
+## Final Content
+
+We shipped three features this quarter...
+
+## Comments
+
+1. "Consider softening the tone in paragraph 2" (chars 45–89)
+
+## Decision
+
+Approved with minor edits applied inline.`;
+
+const WEBHOOK_PAYLOAD = `POST https://your-app.com/webhook/review
+Content-Type: application/json
+
+{
+  "slug": "abc123",
+  "status": "approved",
+  "final_content": "We shipped three features this quarter...",
+  "changes_requested": null,
+  "comments": [
+    {
+      "body": "Consider softening the tone in paragraph 2",
+      "anchor_text": "we dominated",
+      "anchor_start": 45,
+      "anchor_end": 57
+    }
+  ]
+}`;
+
+
+function CodeBlock({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="group relative mb-6">
+      <pre className="bg-zinc-950 text-zinc-100 text-[13px] leading-relaxed rounded-lg p-4 overflow-x-auto">
+        <code>{code}</code>
+      </pre>
+      <button
+        onClick={async () => {
+          await navigator.clipboard.writeText(code);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+        className="absolute top-3 right-3 text-[11px] text-zinc-400 hover:text-white bg-zinc-800 px-2 py-1 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        {copied ? "Copied!" : "Copy"}
+      </button>
+    </div>
+  );
+}
+
+const NAV_SECTIONS = [
+  {
+    title: "Getting Started",
+    links: [
+      { label: "Overview", href: "#overview" },
+      { label: "Quick start", href: "#quick-start" },
+    ],
+  },
+  {
+    title: "API Reference",
+    links: [
+      { label: "POST /upload", href: "#upload" },
+      { label: "GET /summary", href: "#summary" },
+      { label: "Webhook payload", href: "#webhook" },
+      { label: "Access control", href: "#access" },
+    ],
+  },
+];
+
+export default function DocsPage() {
+  return (
+    <div className="min-h-screen bg-white text-black font-[family-name:var(--font-geist-sans)]">
+      {/* Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-zinc-100">
+        <Link href="/" className="text-base font-semibold tracking-tight">
+          review
+        </Link>
+        <Link href="/docs" className="text-sm font-medium text-zinc-500 hover:text-black">
+          Docs
+        </Link>
+      </nav>
+
+      {/* Body */}
+      <div className="max-w-4xl mx-auto px-6 pt-24 pb-32">
+        <div className="sm:flex sm:gap-14">
+          {/* Sidebar */}
+          <aside className="hidden sm:block sm:w-44 sm:shrink-0">
+            <div className="sticky top-24 flex flex-col gap-6">
+              {NAV_SECTIONS.map((section) => (
+                <div key={section.title}>
+                  <p className="text-[11px] uppercase tracking-widest text-zinc-400 font-semibold mb-2">
+                    {section.title}
+                  </p>
+                  <ul className="flex flex-col gap-1">
+                    {section.links.map((link) => (
+                      <li key={link.href}>
+                        <a
+                          href={link.href}
+                          className="text-sm text-zinc-600 hover:text-black"
+                        >
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </aside>
+
+          {/* Content */}
+          <div className="min-w-0 flex-1 pt-2.5">
+            <h1 className="sr-only">review Documentation</h1>
+
+            <section id="overview">
+              <h2 className="text-xl font-semibold text-zinc-950 mt-0 mb-4 scroll-mt-24">
+                Overview
+              </h2>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                review is a human-in-the-loop layer for AI agents. Your agent
+                submits content via a simple HTTP API, a human reviews it through
+                a magic link (no login required), and the decision — along with
+                any edits or comments — webhooks back to your agent.
+              </p>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                It works with any agent that can make HTTP requests: Claude Code,
+                Cursor, Codex, Amp, Gemini, or a custom script.
+              </p>
+            </section>
+
+            <section id="quick-start">
+              <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
+                Quick start
+              </h2>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                Three steps to get a human decision on AI-generated content:
+              </p>
+              <ol className="list-decimal pl-6 text-[15px] text-zinc-700 space-y-2 mb-6">
+                <li>
+                  POST your content to <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">/api/upload</code>. You get back a <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">review_url</code>.
+                </li>
+                <li>
+                  Share the <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">review_url</code> with the reviewer.
+                  They click it, read the content, leave comments, edit inline, and
+                  decide.
+                </li>
+                <li>
+                  Get the decision back via webhook — or poll <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/review/[slug]/summary</code> and paste it into your next prompt.
+                </li>
+              </ol>
+            </section>
+
+            <section id="upload">
+              <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
+                POST /api/upload
+              </h2>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                Submit content for review. Returns a slug and a review URL to send
+                to the reviewer.
+              </p>
+              <CodeBlock code={UPLOAD_EXAMPLE} />
+              <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
+                Fields
+              </p>
+              <table className="w-full text-[13px] text-zinc-700 mb-6 border-collapse">
+                <thead>
+                  <tr className="border-b border-zinc-200">
+                    <th className="text-left py-2 pr-4 font-semibold text-zinc-950">Field</th>
+                    <th className="text-left py-2 pr-4 font-semibold text-zinc-950">Type</th>
+                    <th className="text-left py-2 font-semibold text-zinc-950">Description</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {[
+                    ["title", "string", "Title shown to the reviewer"],
+                    ["content", "string", "Markdown or plain text content"],
+                    ["content_type", '"long_form"', "Content type (only long_form supported)"],
+                    ["access", '"comment_and_edit" | "comment"', "Whether the reviewer can edit inline"],
+                    ["author_email", "string", "Email of the agent/author"],
+                    ["reviewer_email", "string", "Email shown on the review page"],
+                    ["webhook_url", "string (optional)", "URL to POST the decision to when reviewer decides"],
+                  ].map(([field, type, desc]) => (
+                    <tr key={field}>
+                      <td className="py-2 pr-4 font-mono text-[12px]">{field}</td>
+                      <td className="py-2 pr-4 text-zinc-500 font-mono text-[12px]">{type}</td>
+                      <td className="py-2 text-zinc-600">{desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
+                Response
+              </p>
+              <CodeBlock code={UPLOAD_RESPONSE} />
+            </section>
+
+            <section id="summary">
+              <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
+                GET /api/review/[slug]/summary
+              </h2>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                Returns a markdown summary of the review — status, final content,
+                and all comments. Useful for polling or pasting directly into your
+                next agent prompt.
+              </p>
+              <CodeBlock code={SUMMARY_EXAMPLE} />
+              <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
+                Example response
+              </p>
+              <CodeBlock code={SUMMARY_RESPONSE} />
+            </section>
+
+            <section id="webhook">
+              <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
+                Webhook payload
+              </h2>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                When the reviewer clicks Approve or Request Changes, a POST is sent
+                to the <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">webhook_url</code> you provided at upload time.
+              </p>
+              <CodeBlock code={WEBHOOK_PAYLOAD} />
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">status</code> is either{" "}
+                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">"approved"</code> or{" "}
+                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">"changes_requested"</code>.
+                When changes are requested, <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">changes_requested</code> contains
+                the reviewer's note and <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">final_content</code> reflects any inline
+                edits they made.
+              </p>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">webhook_url</code> is optional.
+                If you omit it, the decision is only available via email (sent to{" "}
+                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">author_email</code>) and via{" "}
+                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/review/[slug]/summary</code>.
+              </p>
+            </section>
+
+            <section id="access">
+              <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
+                Access control
+              </h2>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                The <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">access</code> field controls what the reviewer can do:
+              </p>
+              <ul className="list-disc pl-6 text-[15px] text-zinc-700 space-y-2 mb-4">
+                <li>
+                  <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">comment_and_edit</code> — the reviewer can leave inline
+                  comments and edit the content directly. Final edits are reflected
+                  in the webhook payload and summary.
+                </li>
+                <li>
+                  <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">comment</code> — the reviewer can only leave comments.
+                  The content is read-only.
+                </li>
+              </ul>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                Anyone with the review URL can access it — the link is the only
+                access control. Share it only with the intended reviewer.
+              </p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -15,7 +15,7 @@ export default function FloatingToolbar({ editor, editable, onCommentClick }: Pr
     <BubbleMenu
       editor={editor}
       options={{ placement: 'top' }}
-      className="flex items-center gap-1 bg-[#000000] rounded-lg px-2 py-1.5 shadow-lg"
+      className="flex items-center gap-1 bg-[#000000] rounded-md px-2 py-1.5 shadow-lg animate-toolbar-in"
     >
       {editable && (
         <>
@@ -47,6 +47,20 @@ export default function FloatingToolbar({ editor, editable, onCommentClick }: Pr
           >
             <span className="text-xs underline font-ui">U</span>
           </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            active={editor.isActive('bulletList')}
+            title="Bullet list"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="text-white">
+              <circle cx="2.5" cy="4" r="1.5" fill="currentColor"/>
+              <rect x="6" y="3" width="8" height="2" rx="1" fill="currentColor"/>
+              <circle cx="2.5" cy="8" r="1.5" fill="currentColor"/>
+              <rect x="6" y="7" width="8" height="2" rx="1" fill="currentColor"/>
+              <circle cx="2.5" cy="12" r="1.5" fill="currentColor"/>
+              <rect x="6" y="11" width="8" height="2" rx="1" fill="currentColor"/>
+            </svg>
+          </ToolbarButton>
           <div className="w-px h-4 bg-white/20 mx-1" />
         </>
       )}
@@ -70,7 +84,7 @@ function ToolbarButton({ onClick, active, title, children }: {
     <button
       onMouseDown={(e) => { e.preventDefault(); onClick() }}
       title={title}
-      className={`w-7 h-7 flex items-center justify-center rounded text-white transition-colors ${
+      className={`w-7 h-7 flex items-center justify-center rounded-sm text-white transition-colors cursor-pointer ${
         active ? 'bg-white/20' : 'hover:bg-white/10'
       }`}
     >
