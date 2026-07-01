@@ -89,16 +89,6 @@ export default function ContentEditor({ content, editable, comments, activeComme
     editor.setEditable(editable)
   }, [editor, editable])
 
-  useEffect(() => {
-    document.querySelectorAll<HTMLElement>('[data-comment-id]').forEach(el => {
-      el.style.backgroundColor = '#fde68a'
-    })
-    if (activeCommentId) {
-      document.querySelectorAll<HTMLElement>(`[data-comment-id="${activeCommentId}"]`).forEach(el => {
-        el.style.backgroundColor = '#f6b519'
-      })
-    }
-  }, [activeCommentId])
 
   const handleCommentClick = useCallback(() => {
     const saved = savedSelectionRef.current
@@ -161,6 +151,9 @@ export default function ContentEditor({ content, editable, comments, activeComme
 
   return (
     <div className="w-full" onClick={handleEditorClick}>
+      {activeCommentId && (
+        <style>{`.comment-highlight[data-comment-id="${activeCommentId}"] { background-color: #f6b519; }`}</style>
+      )}
       <FloatingToolbar
         editor={editor}
         editable={editable}

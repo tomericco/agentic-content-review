@@ -41,3 +41,8 @@ body {
 @utility animate-toolbar-in {
   animation: toolbar-in 120ms ease-out;
 }
+
+.comment-highlight {
+  background-color: #fde68a;
+  border-radius: 3px;
+}

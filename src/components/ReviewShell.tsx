@@ -20,6 +20,7 @@ function wordCount(text: string) {
 
 export default function ReviewShell({ review, initialComments }: Props) {
   const editorContainerRef = useRef<HTMLDivElement>(null)
+  const baselineContentRef = useRef<string | null>(null)
   const [comments, setComments] = useState<Comment[]>(initialComments)
   const [editedContent, setEditedContent] = useState(review.content)
   const [editorVersion, setEditorVersion] = useState(0)
@@ -31,14 +32,21 @@ export default function ReviewShell({ review, initialComments }: Props) {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    const hasChanges =
-      !decided &&
-      editedContent !== review.content
+    // baselineContentRef is null until the editor fires its first onChange (which
+    // may differ from review.content due to Tiptap markdown normalization on load).
+    // Compare against that normalized baseline, not the raw DB string.
+    const baseline = baselineContentRef.current
+    const hasChanges = !decided && baseline !== null && editedContent !== baseline
     if (!hasChanges) return
     function handleBeforeUnload(e: BeforeUnloadEvent) { e.preventDefault() }
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [decided, editedContent, review.content])
+  }, [decided, editedContent])
+
+  function handleContentChange(markdown: string) {
+    if (baselineContentRef.current === null) baselineContentRef.current = markdown
+    setEditedContent(markdown)
+  }
 
   async function handleCopyForAgent() {
     const res = await fetch(`/api/review/${review.slug}/summary`)
@@ -94,7 +102,7 @@ export default function ReviewShell({ review, initialComments }: Props) {
           editable={review.access === 'comment_and_edit' && !decided}
           comments={comments}
           activeCommentId={activeCommentId}
-          onChange={setEditedContent}
+          onChange={handleContentChange}
           onAddComment={handleAddComment}
           onEditorUpdate={() => setEditorVersion(v => v + 1)}
           onActiveCommentChange={setActiveCommentId}

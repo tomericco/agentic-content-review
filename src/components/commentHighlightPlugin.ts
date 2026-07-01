@@ -45,8 +45,8 @@ function findCommentDecorations(doc: Node, comments: Comment[]): Decoration[] {
 
 export function makeCommentDeco(from: number, to: number, commentId: number | string): Decoration {
   return Decoration.inline(from, to, {
-    // Inline style avoids Tailwind purge issues with dynamically-set class names
-    style: 'background-color: #fde68a; border-radius: 3px;',
+    // class is defined in globals.css — avoids Tailwind purge issues with dynamic strings
+    class: 'comment-highlight',
     'data-comment-id': String(commentId),
   })
 }
