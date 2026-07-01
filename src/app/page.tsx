@@ -15,7 +15,7 @@ Required fields:
 - reviewer_email: string
 - webhook_url: string (where to send the decision)
 
-The response includes a review_url. Share it with the reviewer. When they decide, the webhook fires with the final content, all comments, and the decision status.`;
+The response includes an amend_url. Share it with the reviewer. When they decide, the webhook fires with the final content, all comments, and the decision status.`;
 
 const FAQ = [
   {
@@ -36,7 +36,7 @@ const FAQ = [
   },
   {
     q: "How does my agent get the decision?",
-    a: "Via webhook, fired immediately when the reviewer decides. Or poll GET /api/review/[slug]/summary for a markdown summary ready to paste into your next prompt.",
+    a: "Via webhook, fired immediately when the reviewer decides. Or poll GET /api/amend/[slug]/summary for a markdown summary ready to paste into your next prompt.",
   },
   {
     q: "Who can access the review link?",
@@ -63,7 +63,7 @@ export default function Home() {
     <div className="min-h-screen bg-white text-black font-[family-name:var(--font-geist-sans)]">
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white">
-        <span className="text-base font-semibold tracking-tight">review</span>
+        <span className="text-base font-semibold tracking-tight">amend</span>
         <Link href="/docs" className="text-sm font-medium text-zinc-500 hover:text-black">
           Docs
         </Link>
@@ -161,7 +161,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="px-8 lg:pl-[35%] lg:pr-24 py-10 border-t border-gray-100">
         <p className="text-sm text-gray-400">
-          © 2026 review — human review for AI agents
+          © 2026 amend — human review for AI agents
         </p>
       </footer>
     </div>

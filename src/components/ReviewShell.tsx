@@ -49,7 +49,7 @@ export default function ReviewShell({ review, initialComments }: Props) {
   }
 
   async function handleCopyForAgent() {
-    const res = await fetch(`/api/review/${review.slug}/summary`)
+    const res = await fetch(`/api/amend/${review.slug}/summary`)
     const text = await res.text()
     await navigator.clipboard.writeText(text)
     setCopied(true)

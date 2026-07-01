@@ -9,7 +9,7 @@ const STATUS_LABELS: Record<string, string> = {
 export function buildSummary(review: Review, comments: Comment[]): string {
   const lines: string[] = []
 
-  lines.push(`# Review Summary: ${review.title}`, '')
+  lines.push(`# Amend Summary: ${review.title}`, '')
   lines.push(`**Status:** ${STATUS_LABELS[review.status] ?? review.status}`)
 
   if (review.decided_at) {

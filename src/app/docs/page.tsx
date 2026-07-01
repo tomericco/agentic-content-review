@@ -15,17 +15,17 @@ Content-Type: application/json
   "access": "comment_and_edit",
   "author_email": "agent@example.com",
   "reviewer_email": "human@example.com",
-  "webhook_url": "https://your-app.com/webhook/review"
+  "webhook_url": "https://your-app.com/webhook/amend"
 }`;
 
 const UPLOAD_RESPONSE = `{
   "slug": "abc123",
-  "review_url": "${BASE}/abc123"
+  "amend_url": "${BASE}/abc123"
 }`;
 
-const SUMMARY_EXAMPLE = `GET ${BASE}/api/review/[slug]/summary`;
+const SUMMARY_EXAMPLE = `GET ${BASE}/api/amend/[slug]/summary`;
 
-const SUMMARY_RESPONSE = `# Review Summary: Q2 product update
+const SUMMARY_RESPONSE = `# Amend Summary: Q2 product update
 
 **Status:** approved
 **Decided at:** 2026-07-01T10:23:00Z
@@ -42,7 +42,7 @@ We shipped three features this quarter...
 
 Approved with minor edits applied inline.`;
 
-const WEBHOOK_PAYLOAD = `POST https://your-app.com/webhook/review
+const WEBHOOK_PAYLOAD = `POST https://your-app.com/webhook/amend
 Content-Type: application/json
 
 {
@@ -107,7 +107,7 @@ export default function DocsPage() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-zinc-100">
         <Link href="/" className="text-base font-semibold tracking-tight">
-          review
+          amend
         </Link>
         <Link href="/docs" className="text-sm font-medium text-zinc-500 hover:text-black">
           Docs
@@ -144,14 +144,14 @@ export default function DocsPage() {
 
           {/* Content */}
           <div className="min-w-0 flex-1 pt-2.5">
-            <h1 className="sr-only">review Documentation</h1>
+            <h1 className="sr-only">amend Documentation</h1>
 
             <section id="overview">
               <h2 className="text-xl font-semibold text-zinc-950 mt-0 mb-4 scroll-mt-24">
                 Overview
               </h2>
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
-                review is a human-in-the-loop layer for AI agents. Your agent
+                amend is a human-in-the-loop layer for AI agents. Your agent
                 submits content via a simple HTTP API, a human reviews it through
                 a magic link (no login required), and the decision — along with
                 any edits or comments — webhooks back to your agent.
@@ -171,15 +171,15 @@ export default function DocsPage() {
               </p>
               <ol className="list-decimal pl-6 text-[15px] text-zinc-700 space-y-2 mb-6">
                 <li>
-                  POST your content to <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">/api/upload</code>. You get back a <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">review_url</code>.
+                  POST your content to <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">/api/upload</code>. You get back an <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">amend_url</code>.
                 </li>
                 <li>
-                  Share the <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">review_url</code> with the reviewer.
+                  Share the <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">amend_url</code> with the reviewer.
                   They click it, read the content, leave comments, edit inline, and
                   decide.
                 </li>
                 <li>
-                  Get the decision back via webhook — or poll <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/review/[slug]/summary</code> and paste it into your next prompt.
+                  Get the decision back via webhook — or poll <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/amend/[slug]/summary</code> and paste it into your next prompt.
                 </li>
               </ol>
             </section>
@@ -189,7 +189,7 @@ export default function DocsPage() {
                 POST /api/upload
               </h2>
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
-                Submit content for review. Returns a slug and a review URL to send
+                Submit content for review. Returns a slug and an amend URL to send
                 to the reviewer.
               </p>
               <CodeBlock code={UPLOAD_EXAMPLE} />
@@ -230,10 +230,10 @@ export default function DocsPage() {
 
             <section id="summary">
               <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
-                GET /api/review/[slug]/summary
+                GET /api/amend/[slug]/summary
               </h2>
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
-                Returns a markdown summary of the review — status, final content,
+                Returns a markdown summary of the amend — status, final content,
                 and all comments. Useful for polling or pasting directly into your
                 next agent prompt.
               </p>
@@ -265,7 +265,7 @@ export default function DocsPage() {
                 <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">webhook_url</code> is optional.
                 If you omit it, the decision is only available via email (sent to{" "}
                 <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">author_email</code>) and via{" "}
-                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/review/[slug]/summary</code>.
+                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/amend/[slug]/summary</code>.
               </p>
             </section>
 
@@ -288,7 +288,7 @@ export default function DocsPage() {
                 </li>
               </ul>
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
-                Anyone with the review URL can access it — the link is the only
+                Anyone with the amend URL can access it — the link is the only
                 access control. Share it only with the intended reviewer.
               </p>
             </section>

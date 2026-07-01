@@ -66,7 +66,7 @@ function CommentCard({
     if (!draft.trim()) { setEditing(false); setDraft(comment.body); return }
     if (draft === comment.body) { setEditing(false); return }
     setSaving(true)
-    const res = await fetch(`/api/review/${reviewSlug}/comment/${comment.id}`, {
+    const res = await fetch(`/api/amend/${reviewSlug}/comment/${comment.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ body: draft }),
@@ -78,7 +78,7 @@ function CommentCard({
 
   async function handleDelete() {
     if (!window.confirm('Delete this comment?')) return
-    await fetch(`/api/review/${reviewSlug}/comment/${comment.id}`, { method: 'DELETE' })
+    await fetch(`/api/amend/${reviewSlug}/comment/${comment.id}`, { method: 'DELETE' })
     onDelete(String(comment.id))
   }
 

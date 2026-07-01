@@ -120,7 +120,7 @@ export default function ContentEditor({ content, editable, comments, activeComme
 
   async function submitComment(body: string) {
     if (!pendingComment) return
-    const res = await fetch(`/api/review/${reviewSlug}/comment`, {
+    const res = await fetch(`/api/amend/${reviewSlug}/comment`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

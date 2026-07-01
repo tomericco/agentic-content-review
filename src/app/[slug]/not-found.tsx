@@ -6,7 +6,7 @@ export default function NotFound() {
         The agent must have eaten this one.
       </p>
       <p className="text-[13px] text-[#9ca3af] font-ui">
-        This review doesn&apos;t exist — or never made it past the draft stage.
+        This link doesn&apos;t exist — or never made it past the draft stage.
       </p>
     </div>
   )

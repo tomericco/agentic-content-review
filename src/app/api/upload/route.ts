@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       review_id: review.id,
       slug: review.slug,
-      review_url: `${baseUrl}/${review.slug}`,
+      amend_url: `${baseUrl}/${review.slug}`,
       status: review.status,
     }, { status: 201 })
   } catch (err) {

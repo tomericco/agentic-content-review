@@ -18,9 +18,9 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "review — human review for AI agents",
+  title: "amend — human review for AI agents",
   description:
-    "A review layer between AI agents and publishing. Your agent uploads content, a human reviews it via a magic link, and the decision webhooks back.",
+    "A human review layer for AI agents. Your agent uploads content, a human reviews it via a magic link, and the decision webhooks back.",
 };
 
 export default function RootLayout({
