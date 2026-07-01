@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const BASE = "https://agentic-content-review.vercel.app";
+const BASE = "https://amend.to";
 
 const UPLOAD_EXAMPLE = `POST ${BASE}/api/upload
 Content-Type: application/json

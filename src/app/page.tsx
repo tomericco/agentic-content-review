@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 const AGENT_INSTRUCTIONS = `To submit content for human review, POST to:
-https://agentic-content-review.vercel.app/api/upload
+https://amend.to/api/upload
 
 Required fields:
 - title: string
