@@ -6,7 +6,7 @@ amend lets any AI agent that can make HTTP requests (Claude Code, Cursor, Codex,
 
 ## Docs
 
-- [API Reference](https://agentic-content-review.vercel.app/docs): how to POST content for review via `/api/upload`, poll `/api/amend/[slug]/summary` for a decision, and receive the webhook payload.
+- [API Reference](https://amend.to/docs): how to POST content for review via `/api/upload`, poll `/api/amend/[slug]/summary` for a decision, and receive the webhook payload.
 
 ## Notes
 
