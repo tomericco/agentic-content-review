@@ -34,6 +34,9 @@ export default function ContentEditor({ content, editable, comments, activeComme
   const [pendingComment, setPendingComment] = useState<PendingComment | null>(null)
   const savedSelectionRef = useRef<{ from: number; to: number; text: string } | null>(null)
   const selectionRectRef = useRef<DOMRect | null>(null)
+  // Ref so onSelectionUpdate always calls the current callback without stale closure
+  const onActiveCommentChangeRef = useRef(onActiveCommentChange)
+  onActiveCommentChangeRef.current = onActiveCommentChange
 
   // Capture selection rect on mouseup — before toolbar interactions disturb focus.
   useEffect(() => {
@@ -72,9 +75,17 @@ export default function ContentEditor({ content, editable, comments, activeComme
     },
     onSelectionUpdate({ editor: ed }) {
       const { from, to } = ed.state.selection
+      // Save selection for comment anchor
       if (from !== to) {
         const text = ed.state.doc.textBetween(from, to, ' ')
         if (text.trim()) savedSelectionRef.current = { from, to, text }
+      }
+      // Detect active comment — use ref to avoid stale closure
+      if (from === to) {
+        const decoSet = commentHighlightKey.getState(ed.state) as DecorationSet | undefined
+        const decos = decoSet?.find(Math.max(0, from - 1), from + 1) ?? []
+        const activeId = (decos[0]?.spec as Record<string, string> | undefined)?.['data-comment-id'] ?? null
+        onActiveCommentChangeRef.current(activeId)
       }
     },
     onUpdate({ editor: ed }) {
@@ -137,20 +148,10 @@ export default function ContentEditor({ content, editable, comments, activeComme
     setPendingComment(null)
   }
 
-  // Detect active comment on click — more reliable than onSelectionUpdate closure.
-  function handleEditorClick() {
-    if (!editor) return
-    const { from } = editor.state.selection
-    const decoSet = commentHighlightKey.getState(editor.state) as DecorationSet | undefined
-    const decos = decoSet?.find(Math.max(0, from - 1), from + 1) ?? []
-    const activeId = (decos[0]?.spec as Record<string, string> | undefined)?.['data-comment-id'] ?? null
-    onActiveCommentChange(activeId)
-  }
-
   if (!editor) return null
 
   return (
-    <div className="w-full" onClick={handleEditorClick}>
+    <div className="w-full">
       {activeCommentId && (
         <style>{`.comment-highlight[data-comment-id="${activeCommentId}"] { background-color: #f6b519; }`}</style>
       )}
