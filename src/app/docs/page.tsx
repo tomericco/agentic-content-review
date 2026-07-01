@@ -132,7 +132,6 @@ export default function DocsPage() {
     <div className="min-h-screen bg-white text-black font-[family-name:var(--font-geist-sans)]">
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(quickStartJsonLd) }}
       />
       {/* Nav */}
