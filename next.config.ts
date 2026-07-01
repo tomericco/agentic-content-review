@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
       { hostname: "cdn.simpleicons.org" },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/llm.txt",
+        destination: "/llms.txt",
+      },
+    ];
+  },
   async headers() {
     return [
       {
