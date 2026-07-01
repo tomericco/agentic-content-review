@@ -44,11 +44,12 @@ function findCommentDecorations(doc: Node, comments: Comment[]): Decoration[] {
 }
 
 export function makeCommentDeco(from: number, to: number, commentId: number | string): Decoration {
-  return Decoration.inline(from, to, {
-    // class is defined in globals.css — avoids Tailwind purge issues with dynamic strings
-    class: 'comment-highlight',
-    'data-comment-id': String(commentId),
-  })
+  return Decoration.inline(
+    from, to,
+    { class: 'comment-highlight', 'data-comment-id': String(commentId) },
+    // spec (third arg) is what decos[0].spec returns — attrs are HTML-only
+    { commentId: String(commentId) },
+  )
 }
 
 export function buildCommentHighlightExtension(initialComments: Comment[]) {

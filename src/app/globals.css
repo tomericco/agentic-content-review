@@ -45,4 +45,5 @@ body {
 .comment-highlight {
   background-color: #fde68a;
   border-radius: 3px;
+  transition: background-color 150ms ease;
 }

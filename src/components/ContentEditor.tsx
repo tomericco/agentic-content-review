@@ -80,13 +80,11 @@ export default function ContentEditor({ content, editable, comments, activeComme
         const text = ed.state.doc.textBetween(from, to, ' ')
         if (text.trim()) savedSelectionRef.current = { from, to, text }
       }
-      // Detect active comment — use ref to avoid stale closure
-      if (from === to) {
-        const decoSet = commentHighlightKey.getState(ed.state) as DecorationSet | undefined
-        const decos = decoSet?.find(Math.max(0, from - 1), from + 1) ?? []
-        const activeId = (decos[0]?.spec as Record<string, string> | undefined)?.['data-comment-id'] ?? null
-        onActiveCommentChangeRef.current(activeId)
-      }
+      // Detect active comment for any cursor or selection overlapping a highlight
+      const decoSet = commentHighlightKey.getState(ed.state) as DecorationSet | undefined
+      const decos = decoSet?.find(Math.max(0, from - 1), to + 1) ?? []
+      const activeId = (decos[0]?.spec as { commentId?: string } | undefined)?.commentId ?? null
+      onActiveCommentChangeRef.current(activeId)
     },
     onUpdate({ editor: ed }) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
