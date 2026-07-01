@@ -92,7 +92,7 @@ export default function Home() {
       />
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white">
-        <span className="text-base font-semibold tracking-tight">amend</span>
+        <span className="text-xl font-semibold tracking-tight">amend</span>
         <Link href="/docs" className="text-sm font-medium text-zinc-500 hover:text-black">
           Docs
         </Link>
@@ -109,9 +109,9 @@ export default function Home() {
         {/* Steps */}
         <div className="flex flex-col gap-4 mb-12 max-w-md">
           {[
-            "Your agent POSTs content to the API — title, body, webhook URL",
+            "Your agent POSTs content using our API",
             "The reviewer gets a magic link — no login, no install",
-            "They approve, edit, or request changes — the decision webhooks back",
+            "They review and submit feedback — the agent gets it automatically",
           ].map((step, i) => (
             <div key={i} className="flex items-start gap-3.5">
               <span className="mt-0.5 shrink-0 w-5 h-5 bg-black text-white text-[10px] font-bold flex items-center justify-center">
@@ -125,8 +125,8 @@ export default function Home() {
         {/* CTA row */}
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-20">
           <div className="flex flex-col gap-2.5">
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
-              For agents
+            <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold">
+              Try it now
             </p>
             <button
               onClick={copy}
@@ -154,7 +154,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-2.5">
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+            <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold">
               Works with every agent
             </p>
             <div className="flex items-center gap-2 flex-wrap">
