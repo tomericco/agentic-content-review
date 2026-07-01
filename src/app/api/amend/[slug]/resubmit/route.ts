@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { getReviewBySlug, resubmitReview } from '@/lib/db'
-import { notifyReviewer } from '@/lib/email'
+// import { notifyReviewer } from '@/lib/email' // email sending disabled for now
 
 export async function PATCH(
   req: NextRequest,
@@ -29,7 +29,7 @@ export async function PATCH(
 
     const updated = await resubmitReview(review.id, content)
 
-    notifyReviewer(updated).catch(() => {})
+    // notifyReviewer(updated).catch(() => {}) // email sending disabled for now
 
     revalidatePath(`/${slug}`)
 

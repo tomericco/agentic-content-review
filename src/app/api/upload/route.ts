@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateUpload } from '@/lib/validate'
 import { generateSlug } from '@/lib/slug'
 import { getExistingSlugs, createReview } from '@/lib/db'
-import { notifyReviewer } from '@/lib/email'
+// import { notifyReviewer } from '@/lib/email' // email sending disabled for now
 
 export async function POST(req: NextRequest) {
   let body: unknown
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const slug = generateSlug(validation.data.title, existingSlugs)
 
     const review = await createReview(validation.data, slug)
-    notifyReviewer(review).catch(() => {}) // fire-and-forget — do NOT await, never block the response
+    // notifyReviewer(review).catch(() => {}) // email sending disabled for now
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
 
     return NextResponse.json({

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { validateDecide } from '@/lib/validate'
 import { getReviewBySlug, updateReviewDecision, getCommentsByReviewId } from '@/lib/db'
-import { notifyAuthor } from '@/lib/email'
+// import { notifyAuthor } from '@/lib/email' // email sending disabled for now
 
 export async function POST(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug')
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     const updated = await updateReviewDecision(review.id, validation.data)
 
-    notifyAuthor(updated, comments).catch(() => {})
+    // notifyAuthor(updated, comments).catch(() => {}) // email sending disabled for now
 
     revalidatePath(`/${slug}`)
 

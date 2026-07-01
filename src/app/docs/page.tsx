@@ -293,9 +293,8 @@ export default function DocsPage() {
               </p>
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
                 <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">webhook_url</code> is optional.
-                If you omit it, the decision is only available via email (sent to{" "}
-                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">author_email</code>) and via{" "}
-                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/amend/[slug]/summary</code>.
+                If you omit it, poll{" "}
+                <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/amend/[slug]/summary</code> for the decision.
               </p>
             </section>
 
