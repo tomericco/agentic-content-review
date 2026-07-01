@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const AGENT_INSTRUCTIONS = `To submit content for human review, POST to:
 https://amend.to/api/upload
@@ -73,7 +74,13 @@ const faqJsonLd = {
   })),
 };
 
-const AGENTS = ["Claude", "Cursor", "Codex", "Amp", "Gemini"];
+const AGENTS = [
+  { name: "Claude Code", slug: "claudecode" },
+  { name: "Cursor", slug: "cursor" },
+  { name: "GitHub Copilot", slug: "githubcopilot" },
+  { name: "Windsurf", slug: "windsurf" },
+  { name: "Gemini", slug: "googlegemini" },
+];
 
 export default function Home() {
   const [copied, setCopied] = useState(false);
@@ -101,20 +108,18 @@ export default function Home() {
       {/* Hero */}
       <main className="pt-40 pb-32 px-8 lg:pl-[35%] lg:pr-24">
         <h1 className="text-5xl leading-[1.05] font-bold tracking-tight mb-10 max-w-md">
-          Human review,
-          <br />
-          for AI content.
+          Free content review tool for agents
         </h1>
 
         {/* Steps */}
         <div className="flex flex-col gap-4 mb-12 max-w-md">
           {[
-            "Your agent POSTs content using our API",
-            "The reviewer gets a magic link — no login, no install",
-            "They review and submit feedback — the agent gets it automatically",
+            "Just tell your agent to post content to amend.to",
+            "You get a magic link — no login, no install",
+            "You and team review and submit feedback — sent directly to your agent",
           ].map((step, i) => (
             <div key={i} className="flex items-start gap-3.5">
-              <span className="mt-0.5 shrink-0 w-5 h-5 bg-black text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="mt-0.5 shrink-0 w-5 h-5 bg-black text-white text-[12px] font-bold flex items-center justify-center">
                 {i + 1}
               </span>
               <p className="text-base text-gray-700 leading-snug">{step}</p>
@@ -157,13 +162,16 @@ export default function Home() {
             <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold">
               Works with every agent
             </p>
-            <div className="flex items-center gap-2 flex-wrap">
-              {AGENTS.map((name) => (
-                <span
-                  key={name}
-                  className="text-xs font-medium text-gray-500 border border-gray-200 px-2.5 py-1.5 leading-none"
-                >
-                  {name}
+            <div className="flex items-center gap-4 flex-wrap">
+              {AGENTS.map(({ name, slug }) => (
+                <span key={slug} title={name} className="flex items-center justify-center">
+                  <Image
+                    src={`https://cdn.simpleicons.org/${slug}/6b7280`}
+                    alt={name}
+                    width={26}
+                    height={26}
+                    unoptimized
+                  />
                 </span>
               ))}
             </div>
