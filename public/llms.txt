@@ -1,0 +1,13 @@
+# amend
+
+> A human review layer for AI agents. Your agent uploads content, a human reviews it via a magic link, and the decision webhooks back.
+
+amend lets any AI agent that can make HTTP requests (Claude Code, Cursor, Codex, Amp, Gemini, or a custom script) submit content for human review. A human reviews it through a magic link — no login required — and the decision, along with any inline edits or comments, is sent back to the agent via webhook.
+
+## Docs
+
+- [API Reference](https://agentic-content-review.vercel.app/docs): how to POST content for review via `/api/upload`, poll `/api/amend/[slug]/summary` for a decision, and receive the webhook payload.
+
+## Notes
+
+- Only the homepage and `/docs` are intended for indexing; all other routes (`/api/*`, individual review pages) are private and excluded via `robots.txt` and `noindex` metadata.
