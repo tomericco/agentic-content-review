@@ -107,7 +107,7 @@ export default function Home() {
 
       {/* Hero */}
       <main className="pt-40 pb-32 px-8 lg:pl-[35%] lg:pr-24">
-        <h1 className="text-5xl leading-[1.05] font-bold tracking-tight mb-10 max-w-md">
+        <h1 className="text-5xl font-bold tracking-tight mb-10 max-w-md">
           Free content review tool for agents
         </h1>
 
@@ -180,7 +180,7 @@ export default function Home() {
       </main>
 
       {/* Divider */}
-      <hr className="mx-8 lg:ml-[35%] lg:mr-24 border-gray-200" />
+      <hr className="mx-8 border-gray-200" />
 
       {/* FAQ */}
       <section className="py-24 px-8 lg:pl-[35%] lg:pr-24">
