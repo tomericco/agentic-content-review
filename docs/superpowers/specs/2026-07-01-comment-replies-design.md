@@ -6,10 +6,10 @@ Let people discuss a comment before a review is decided. A review link has no lo
 
 ## Scope
 
-- Fully nested reply threads (a reply can itself be replied to, to arbitrary depth).
+- Reply-to-reply is supported at the data level (a reply's `parent_id` can point to another reply, to arbitrary depth) — but display is **flat, not nested**: every reply in a thread, regardless of which specific comment/reply it was posted in response to, renders as one chronological list directly under the thread's root comment. Replying to a reply doesn't visually indent further; it just adds another entry to that same flat list. This applies both on the review page and in the agent-facing summary.
 - Replies inherit their thread root's text anchor — they don't anchor to their own span of text.
 - Replies are visible to the agent: included in `GET /api/amend/[slug]/summary` (the only agent-facing surface that's actually wired up today — see "Explicitly out of scope").
-- A lightweight, auto-generated display name per browser (no auth) so threaded replies read as a real conversation instead of unattributed bubbles.
+- A lightweight, auto-generated display name per browser (no auth) so replies read as a real conversation instead of unattributed bubbles.
 
 ## Data model
 
@@ -85,25 +85,28 @@ Reuse the existing `POST /api/amend/[slug]/comment` endpoint for both top-level 
 
 `getCommentsByReviewId` is unchanged: still returns a flat list ordered by `created_at` ascending. Nesting is a read-time concern for consumers, not the DB layer.
 
-## Tree building (shared)
+## Thread grouping (shared)
 
 New `src/lib/commentTree.ts`:
 
 ```ts
-export interface CommentNode extends Comment {
-  replies: CommentNode[]
+export interface CommentThread {
+  root: Comment
+  replies: Comment[]
 }
 
-export function buildCommentTree(comments: Comment[]): CommentNode[]
+export function buildCommentThreads(comments: Comment[]): CommentThread[]
 ```
 
-Groups the flat list by `parent_id` in one pass, then recursively attaches children to their parent, returning only the roots (`parent_id === null`) with `replies` populated at every depth. Used by both the client UI (`MarginalComments`) and the server-side summary builder (`buildSummary`) — one definition of "how a thread nests," not two.
+For each top-level comment (`parent_id === null`), collects **all** of its descendants at any depth — a reply to a reply still belongs to the same root's thread — into a single flat `replies` array sorted by `created_at` ascending. There is no nested `CommentNode`/`replies-of-replies` structure; a thread is always exactly two levels for display purposes: one root, one flat list under it. `parent_id` itself still records the true reply-to-reply relationship in the data (in case a nested UI is ever wanted later), but nothing reads that chain for rendering — grouping only cares "which root does this comment ultimately belong to."
 
-Defensive behavior: if a comment's `parent_id` points to a row that isn't in the given list (shouldn't happen given the FK, but the function shouldn't crash if it does), that comment is treated as a root rather than dropped.
+Used by both the client UI (`MarginalComments`) and the server-side summary builder (`buildSummary`) — one definition of "which replies belong to which thread," not two.
+
+Defensive behavior: if a comment's `parent_id` points to a row that isn't in the given list (shouldn't happen given the FK, but the function shouldn't crash if it does), that comment is treated as its own root rather than dropped.
 
 ## Summary output (agent-facing)
 
-`buildSummary()` (`src/lib/summary.ts`) is rewritten to walk `buildCommentTree(comments)` and render each root followed by its replies, indented per depth with `↳`, including author name when present:
+`buildSummary()` (`src/lib/summary.ts`) is rewritten to walk `buildCommentThreads(comments)` and render each root followed by its flat list of replies (uniform `↳` prefix, no depth-based indentation), including author name when present:
 
 ```
 ## Comments (3)
@@ -111,7 +114,7 @@ Defensive behavior: if a comment's `parent_id` points to a row that isn't in the
 1. On: "we dominated"
    → "Consider softening the tone" — Quick Falcon
      ↳ "Agreed, will rewrite" — Silent Otter
-       ↳ "Thanks!" — Quick Falcon
+     ↳ "Thanks!" — Quick Falcon
 ```
 
 A comment/reply with no `author_name` renders without the `— Name` suffix (same as today's format for the top-level case).
@@ -126,16 +129,15 @@ On first visit to a review page, generate a readable random name client-side in 
 
 ### `CommentCard` (in `MarginalComments.tsx`)
 
-Becomes recursive:
+Stays a single component, not recursive — it now renders a root comment plus a flat list of reply rows:
 
-- Renders its own body (unchanged: edit/delete actions, timestamp), now also showing `author_name` as a small label when present.
-- Adds a "Reply" action. Clicking it reveals an inline textarea directly under the comment (reusing the existing edit-textarea styling and `Cmd/Ctrl+Enter` submit / `Escape` cancel pattern already used for editing).
-- If the comment has `replies`, renders them as nested `CommentCard`s, indented under it, each capable of being replied to in turn (arbitrary depth).
-- Edit/delete continue to work per-row exactly as today, since replies are just comment rows.
+- Root comment renders as today (edit/delete actions, timestamp), now also showing `author_name` as a small label when present.
+- Below it, each entry in `thread.replies` (from `buildCommentThreads`) renders as a lighter-weight row: body, author name, timestamp, and its own edit/delete actions (since it's still an independently editable/deletable comment row) — but no further "reply" indentation under it.
+- Every row in the thread (the root, and each reply) has a "Reply" action. Clicking it on *any* row reveals the same inline textarea (reusing the existing edit-textarea styling and `Cmd/Ctrl+Enter` submit / `Escape` cancel pattern already used for editing), always appended visually at the end of the flat reply list — clicking "Reply" on an earlier reply sets that reply's id as `parent_id` on the new comment (preserving the real relationship in the data) but the new reply still appears at the bottom of the flat list, not inserted next to the one it was replying to.
 
 ### Positioning fix (necessary, not optional)
 
-`MarginalComments`'s current layout logic assumes a fixed 88px minimum vertical gap between top-level comment cards when stacking them next to the article. With nested threads, a card's rendered height becomes highly variable (a comment with a 4-deep reply thread is much taller than a lone comment). This is replaced with measuring each top-level card's actual rendered height via `ResizeObserver` and stacking subsequent cards based on real measured heights, not the fixed constant.
+`MarginalComments`'s current layout logic assumes a fixed 88px minimum vertical gap between top-level comment cards when stacking them next to the article. With reply threads, a card's rendered height becomes highly variable (a comment with ten replies is much taller than a lone comment). This is replaced with measuring each card's actual rendered height via `ResizeObserver` and stacking subsequent cards based on real measured heights, not the fixed constant.
 
 ### Explicitly out of scope
 
@@ -145,6 +147,6 @@ Becomes recursive:
 
 ## Testing
 
-- `commentTree.test.ts`: flat-to-tree conversion, multi-level nesting, multiple roots, defensive handling of an orphaned `parent_id`.
-- `comment/route.ts` (or its test equivalent): creating a reply with `parent_id` (anchor fields optional/ignored), rejecting a `parent_id` from another review, rejecting a nonexistent `parent_id`, unchanged behavior for top-level comments (no `parent_id`).
-- `summary.test.ts`: nested rendering format, author name present/absent, multi-level indentation.
+- `commentTree.test.ts`: grouping a flat list into threads, a reply-to-a-reply still lands in its root's flat `replies` list (not nested), multiple independent roots, defensive handling of an orphaned `parent_id`.
+- `comment/route.ts` (or its test equivalent): creating a reply with `parent_id` (anchor fields optional/ignored), replying to a reply (`parent_id` pointing at a non-root comment) still resolves to the correct thread, rejecting a `parent_id` from another review, rejecting a nonexistent `parent_id`, unchanged behavior for top-level comments (no `parent_id`).
+- `summary.test.ts`: flat reply-list rendering format, author name present/absent, a reply-to-a-reply appears in the same flat list as a reply-to-root.
