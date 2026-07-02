@@ -364,13 +364,13 @@ export default function MarginalComments({ threads, containerRef, editorVersion,
   })
 
   return (
-    <div className="absolute left-[calc(100%+2rem)] top-0 w-52 pointer-events-none">
+    <div className="absolute left-[calc(100%+2rem)] top-0 w-64 pointer-events-none">
       {positioned.map((thread) => {
         const isActive = String(thread.root.id) === activeCommentId
         return (
           <div
             key={thread.root.id}
-            className="absolute left-0 w-52 pointer-events-auto transition-transform duration-150"
+            className="absolute left-0 w-64 pointer-events-auto transition-transform duration-150"
             style={{
               top: thread.top,
               transform: isActive ? 'translateX(-10px)' : 'translateX(0)',
