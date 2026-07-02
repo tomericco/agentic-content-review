@@ -59,8 +59,12 @@ export default function RequestChangesModal({ comments, reviewSlug, onClose, onS
             <ul className="space-y-2 max-h-56 overflow-y-auto">
               {comments.map((c) => (
                 <li key={c.id} className="text-sm text-gray-700 bg-gray-50 rounded-md px-3 py-2 font-ui">
-                  <span className="text-gray-400 italic">&quot;{c.anchor_text.slice(0, 40)}{c.anchor_text.length > 40 ? '…' : ''}&quot;</span>
-                  <span className="mx-1 text-gray-300">→</span>
+                  {c.anchor_text && (
+                    <>
+                      <span className="text-gray-400 italic">&quot;{c.anchor_text.slice(0, 40)}{c.anchor_text.length > 40 ? '…' : ''}&quot;</span>
+                      <span className="mx-1 text-gray-300">→</span>
+                    </>
+                  )}
                   {c.body}
                 </li>
               ))}

@@ -10,6 +10,10 @@ function findCommentDecorations(doc: Node, comments: Comment[]): Decoration[] {
   const decos: Decoration[] = []
   comments.forEach((comment) => {
     const { anchor_start: from, anchor_end: to, anchor_text: text } = comment
+    // Replies have no anchor of their own (they inherit their thread root's
+    // position) — nothing to highlight for them. Callers should already filter
+    // to root comments, but this guard is cheap defense-in-depth.
+    if (from === null || to === null || text === null) return
 
     // Primary: use the stored ProseMirror positions directly.
     // Verify the text still matches (fails if document was heavily edited).

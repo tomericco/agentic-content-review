@@ -9,9 +9,11 @@ const supabase = createClient(
 
 export interface CommentInput {
   body: string
-  anchor_start: number
-  anchor_end: number
-  anchor_text: string
+  parent_id: string | null
+  anchor_start: number | null
+  anchor_end: number | null
+  anchor_text: string | null
+  author_name: string | null
 }
 
 export async function getExistingSlugs(): Promise<string[]> {
@@ -88,6 +90,17 @@ export async function createComment(reviewId: string, input: CommentInput): Prom
 
   if (error) throw new Error(`DB error creating comment: ${error.message}`)
   return data as Comment
+}
+
+export async function getCommentById(id: string): Promise<Comment | null> {
+  const { data, error } = await supabase
+    .from('comments')
+    .select()
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) throw new Error(`DB error fetching comment: ${error.message}`)
+  return data as Comment | null
 }
 
 export async function updateComment(id: string, body: string): Promise<Comment> {

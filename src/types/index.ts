@@ -23,9 +23,11 @@ export interface Review {
 export interface Comment {
   id: string
   review_id: string
+  parent_id: string | null
   body: string
-  anchor_start: number
-  anchor_end: number
-  anchor_text: string
+  anchor_start: number | null
+  anchor_end: number | null
+  anchor_text: string | null
+  author_name: string | null
   created_at: string
 }
