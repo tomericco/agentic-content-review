@@ -5,16 +5,67 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/components/Logo";
 
-const AGENT_INSTRUCTIONS = `To submit content for human review, POST to:
-https://www.amend.to/api/upload
+const AGENT_INSTRUCTIONS = `# Install amend
 
-Required fields:
-- title: string
-- content: string (markdown or plain text)
-- content_type: "long_form"
-- access: "comment_and_edit" or "comment"
+Get human review on content before it ships, using amend
+(https://www.amend.to). Keep replies succinct — don't narrate each step to
+the user.
 
-The response includes an amend_url. Share it with the reviewer. When they finish with their review, visit https://www.amend.to/[slug]/summary to get their feedback.`;
+## 1. Submit content for review
+
+POST the content to \`/api/upload\`:
+
+\`\`\`
+POST https://www.amend.to/api/upload
+Content-Type: application/json
+
+{
+  "title": "string — shown to the reviewer",
+  "content": "string — markdown or plain text",
+  "content_type": "long_form",
+  "access": "comment_and_edit" | "comment"
+}
+\`\`\`
+
+The response includes three URLs — always use these exactly as returned,
+never construct them yourself:
+- \`amend_url\` — share this with the human reviewer
+- \`summary_url\` — poll this for the decision (step 2)
+- \`resubmit_url\` — use this if changes are requested (step 3)
+
+## 2. Get the reviewer's feedback
+
+GET the \`summary_url\` from the response above:
+
+\`\`\`
+GET <summary_url>
+\`\`\`
+
+Returns a markdown summary — status, any comments, and (if approved) the
+final content. Paste it directly into your next prompt.
+
+## 3. Resubmit after changes are requested
+
+If the summary's status is \`changes_requested\`, revise the content and
+PATCH it to the \`resubmit_url\` from the summary:
+
+\`\`\`
+PATCH <resubmit_url>
+Content-Type: application/json
+
+{
+  "content": "string — your revised draft"
+}
+\`\`\`
+
+This resets the review to pending and clears old comments (they anchored to
+the previous draft) — repeat step 2 to poll for the next decision.
+
+## Important tips
+
+- Never construct \`amend_url\`, \`summary_url\`, or \`resubmit_url\` yourself — always use the ones returned by the API.
+- No account or API key needed — the review link itself is the access control, so only share it with the intended reviewer.
+- A review can only be resubmitted when its status isn't already \`pending\`.`;
 
 const FAQ = [
   {
