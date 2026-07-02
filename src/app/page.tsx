@@ -7,21 +7,22 @@ import Logo from "@/components/Logo";
 
 const AGENT_INSTRUCTIONS = `# Install amend
 
-Get human review on content before it ships, using amend
-(https://www.amend.to). Keep replies succinct — don't narrate each step to
-the user.
+You are the content creator here — amend (https://www.amend.to) lets you
+send content you've written to a human for review before it ships, then
+hands their feedback back to you so you can act on it. Keep replies
+succinct — don't narrate each step to the user.
 
-## 1. Submit content for review
+## 1. Submit your content for human review
 
-POST the content to \`/api/upload\`:
+POST the content you wrote to \`/api/upload\`:
 
 \`\`\`
 POST https://www.amend.to/api/upload
 Content-Type: application/json
 
 {
-  "title": "string — shown to the reviewer",
-  "content": "string — markdown or plain text",
+  "title": "string — shown to the human reviewer",
+  "content": "string — the content you wrote, markdown or plain text",
   "content_type": "long_form",
   "access": "comment_and_edit" | "comment"
 }
@@ -30,10 +31,10 @@ Content-Type: application/json
 The response includes three URLs — always use these exactly as returned,
 never construct them yourself:
 - \`amend_url\` — share this with the human reviewer
-- \`summary_url\` — poll this for the decision (step 2)
-- \`resubmit_url\` — use this if changes are requested (step 3)
+- \`summary_url\` — poll this for their decision (step 2)
+- \`resubmit_url\` — use this if they request changes (step 3)
 
-## 2. Get the reviewer's feedback
+## 2. Get the human reviewer's feedback
 
 GET the \`summary_url\` from the response above:
 
@@ -41,28 +42,32 @@ GET the \`summary_url\` from the response above:
 GET <summary_url>
 \`\`\`
 
-Returns a markdown summary — status, any comments, and (if approved) the
-final content. Paste it directly into your next prompt.
+Returns a markdown summary of what the human reviewer decided — status, any
+comments they left, and (if they approved it) the final content, including
+any edits they made. Paste it directly into your next prompt.
 
-## 3. Resubmit after changes are requested
+## 3. Revise and resubmit based on their feedback
 
-If the summary's status is \`changes_requested\`, revise the content and
-PATCH it to the \`resubmit_url\` from the summary:
+If the summary's status is \`changes_requested\`, rewrite your content to
+address the human reviewer's feedback, then PATCH your revised draft to the
+\`resubmit_url\` from the summary:
 
 \`\`\`
 PATCH <resubmit_url>
 Content-Type: application/json
 
 {
-  "content": "string — your revised draft"
+  "content": "string — your revised draft, addressing their feedback"
 }
 \`\`\`
 
-This resets the review to pending and clears old comments (they anchored to
-the previous draft) — repeat step 2 to poll for the next decision.
+This sends your new draft back to the same human reviewer and clears the
+old comments (they anchored to your previous draft, not this one) — repeat
+step 2 to poll for their next decision.
 
 ## Important tips
 
+- You are the author; the human at \`amend_url\` is the reviewer — only they can approve or request changes, you cannot decide for them.
 - Never construct \`amend_url\`, \`summary_url\`, or \`resubmit_url\` yourself — always use the ones returned by the API.
 - No account or API key needed — the review link itself is the access control, so only share it with the intended reviewer.
 - A review can only be resubmitted when its status isn't already \`pending\`.`;
