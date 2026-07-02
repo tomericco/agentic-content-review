@@ -8,6 +8,7 @@ import ContentEditor from './ContentEditor'
 import MarginalComments from './MarginalComments'
 import RequestChangesModal from './RequestChangesModal'
 import ApproveModal from './ApproveModal'
+import AgentContextDrawer from './AgentContextDrawer'
 import Button from './Button'
 
 interface Props {
@@ -28,6 +29,7 @@ export default function ReviewShell({ review, initialComments }: Props) {
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
   const [showRequestChanges, setShowRequestChanges] = useState(false)
   const [showApprove, setShowApprove] = useState(false)
+  const [showAgentContext, setShowAgentContext] = useState(false)
   const [decided, setDecided] = useState(review.status !== 'pending')
   const [currentStatus, setCurrentStatus] = useState(review.status)
   const [copied, setCopied] = useState(false)
@@ -90,25 +92,13 @@ export default function ReviewShell({ review, initialComments }: Props) {
           review={{ ...review, status: currentStatus }}
           onApprove={() => setShowApprove(true)}
           onRequestChanges={() => setShowRequestChanges(true)}
+          onOpenContext={() => setShowAgentContext(true)}
           wordCount={words}
         />
       </div>
 
       {/* Centered article — relative so comments + popover can float right */}
       <div className="w-[680px] relative flex flex-col gap-6 py-10" ref={editorContainerRef}>
-        {review.context && (
-          <details className="bg-white border border-[#e5e7eb] rounded-md px-4 py-3 group">
-            <summary className="text-[13px] font-bold text-[#000000] font-ui cursor-pointer list-none flex items-center justify-between">
-              Agent context
-              <span className="text-[#9ca3af] text-[11px] font-normal group-open:hidden">show</span>
-              <span className="text-[#9ca3af] text-[11px] font-normal hidden group-open:inline">hide</span>
-            </summary>
-            <p className="mt-2 text-[14px] text-[#6b7280] font-ui leading-[1.5] whitespace-pre-wrap">
-              {review.context}
-            </p>
-          </details>
-        )}
-
         <ContentEditor
           content={editedContent}
           editable={review.access === 'comment_and_edit' && !decided}
@@ -162,6 +152,13 @@ export default function ReviewShell({ review, initialComments }: Props) {
           reviewSlug={review.slug}
           onClose={() => setShowRequestChanges(false)}
           onSubmit={() => { setDecided(true); setCurrentStatus('changes_requested') }}
+        />
+      )}
+
+      {showAgentContext && review.context && (
+        <AgentContextDrawer
+          context={review.context}
+          onClose={() => setShowAgentContext(false)}
         />
       )}
     </div>

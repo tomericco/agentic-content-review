@@ -9,10 +9,11 @@ interface Props {
   review: Review
   onApprove: () => void
   onRequestChanges: () => void
+  onOpenContext: () => void
   wordCount: number
 }
 
-export default function DecisionHeader({ review, onApprove, onRequestChanges, wordCount }: Props) {
+export default function DecisionHeader({ review, onApprove, onRequestChanges, onOpenContext, wordCount }: Props) {
   const isPending = review.status === 'pending'
   const timeAgo = formatDistanceToNow(new Date(review.created_at), { addSuffix: true })
   const fullDate = format(new Date(review.created_at), 'MMM d, yyyy, h:mm a')
@@ -46,6 +47,17 @@ export default function DecisionHeader({ review, onApprove, onRequestChanges, wo
           <Tooltip content={fullDate}>
             Submitted {timeAgo}
           </Tooltip>
+          {review.context && (
+            <>
+              <span className="text-[#9ca3af]">•</span>
+              <button
+                className="underline cursor-pointer hover:text-[#000000]"
+                onClick={onOpenContext}
+              >
+                Agent context
+              </button>
+            </>
+          )}
         </div>
         <span>{wordCount.toLocaleString()} words</span>
       </div>
