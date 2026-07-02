@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getReviewBySlug, getCommentsByReviewId } from '@/lib/db'
 import { buildSummary } from '@/lib/summary'
+import { SITE_URL } from '@/lib/site'
 
 export async function GET(
   _req: NextRequest,
@@ -14,8 +15,7 @@ export async function GET(
     }
 
     const comments = await getCommentsByReviewId(review.id)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
-    const resubmitUrl = `${baseUrl}/api/amend/${review.slug}/resubmit`
+    const resubmitUrl = `${SITE_URL}/api/amend/${review.slug}/resubmit`
     const summary = buildSummary(review, comments, resubmitUrl)
 
     return new NextResponse(summary, {

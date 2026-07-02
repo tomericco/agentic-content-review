@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateUpload } from '@/lib/validate'
 import { generateSlug } from '@/lib/slug'
 import { getExistingSlugs, createReview } from '@/lib/db'
+import { SITE_URL } from '@/lib/site'
 // import { notifyReviewer } from '@/lib/email' // email sending disabled for now
 
 export async function POST(req: NextRequest) {
@@ -22,14 +23,13 @@ export async function POST(req: NextRequest) {
 
     const review = await createReview(validation.data, slug)
     // notifyReviewer(review).catch(() => {}) // email sending disabled for now
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
 
     return NextResponse.json({
       review_id: review.id,
       slug: review.slug,
-      amend_url: `${baseUrl}/${review.slug}`,
-      summary_url: `${baseUrl}/api/amend/${review.slug}/summary`,
-      resubmit_url: `${baseUrl}/api/amend/${review.slug}/resubmit`,
+      amend_url: `${SITE_URL}/${review.slug}`,
+      summary_url: `${SITE_URL}/api/amend/${review.slug}/summary`,
+      resubmit_url: `${SITE_URL}/api/amend/${review.slug}/resubmit`,
       status: review.status,
     }, { status: 201 })
   } catch (err) {

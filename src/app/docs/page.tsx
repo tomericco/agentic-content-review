@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const BASE = "https://amend.to";
+const BASE = "https://www.amend.to";
 
 const UPLOAD_EXAMPLE = `POST ${BASE}/api/upload
 Content-Type: application/json

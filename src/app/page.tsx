@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 const AGENT_INSTRUCTIONS = `To submit content for human review, POST to:
-https://amend.to/api/upload
+https://www.amend.to/api/upload
 
 Required fields:
 - title: string
@@ -13,7 +13,7 @@ Required fields:
 - content_type: "long_form"
 - access: "comment_and_edit" or "comment"
 
-The response includes an amend_url. Share it with the reviewer. When they finish with their review, visit https://amend.to/[slug]/summary to get their feedback.`;
+The response includes an amend_url. Share it with the reviewer. When they finish with their review, visit https://www.amend.to/[slug]/summary to get their feedback.`;
 
 const FAQ = [
   {

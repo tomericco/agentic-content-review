@@ -1,5 +1,5 @@
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ?? "https://amend.to";
+  process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.amend.to";
 
 export const SITE_NAME = "amend";
 

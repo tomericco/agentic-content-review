@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { getReviewBySlug, resubmitReview, deleteCommentsByReviewId } from '@/lib/db'
+import { SITE_URL } from '@/lib/site'
 // import { notifyReviewer } from '@/lib/email' // email sending disabled for now
 
 export async function PATCH(
@@ -37,12 +38,11 @@ export async function PATCH(
 
     revalidatePath(`/${slug}`)
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
     return NextResponse.json({
       slug: updated.slug,
-      amend_url: `${baseUrl}/${updated.slug}`,
-      summary_url: `${baseUrl}/api/amend/${updated.slug}/summary`,
-      resubmit_url: `${baseUrl}/api/amend/${updated.slug}/resubmit`,
+      amend_url: `${SITE_URL}/${updated.slug}`,
+      summary_url: `${SITE_URL}/api/amend/${updated.slug}/summary`,
+      resubmit_url: `${SITE_URL}/api/amend/${updated.slug}/resubmit`,
       status: updated.status,
     })
   } catch (err) {
