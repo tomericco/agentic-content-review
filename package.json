@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node --env-file=.env.local scripts/seed-dev.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:seed": "node --env-file=.env.local scripts/seed-dev.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
