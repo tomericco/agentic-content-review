@@ -2,16 +2,19 @@
 
 import { useRef, useEffect, useState } from 'react'
 import Button from './Button'
+import { getDisplayName, setDisplayName } from '@/lib/displayName'
 
 interface Props {
   anchorText: string
   viewportTop: number
-  onSubmit: (body: string) => Promise<void>
+  onSubmit: (body: string, authorName: string) => Promise<void>
   onClose: () => void
 }
 
 export default function CommentPopover({ anchorText, viewportTop, onSubmit, onClose }: Props) {
   const [body, setBody] = useState('')
+  const [name, setName] = useState(() => getDisplayName())
+  const [editingName, setEditingName] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -31,7 +34,7 @@ export default function CommentPopover({ anchorText, viewportTop, onSubmit, onCl
   async function handleSubmit() {
     if (!body.trim()) return
     setSubmitting(true)
-    await onSubmit(body)
+    await onSubmit(body, name)
     setSubmitting(false)
     onClose()
   }
@@ -54,6 +57,26 @@ export default function CommentPopover({ anchorText, viewportTop, onSubmit, onCl
           {anchorText.length > 50 ? anchorText.slice(0, 50) + '…' : anchorText}
         </p>
       )}
+      <p className="text-[11px] text-[#9ca3af] font-ui">
+        Commenting as{' '}
+        {editingName ? (
+          <input
+            autoFocus
+            className="text-[11px] text-[#374151] font-medium bg-transparent border-b border-[#d1d5db] outline-none w-24"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => { setEditingName(false); if (name.trim()) setDisplayName(name) }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { setEditingName(false); if (name.trim()) setDisplayName(name) }
+            }}
+          />
+        ) : (
+          <>
+            <span className="font-medium text-[#374151]">{name}</span>{' '}
+            <button type="button" className="underline cursor-pointer" onClick={() => setEditingName(true)}>edit</button>
+          </>
+        )}
+      </p>
       <textarea
         autoFocus
         rows={3}

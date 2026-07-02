@@ -118,7 +118,7 @@ export default function ContentEditor({ content, editable, comments, activeComme
     setPendingComment({ anchorText, anchorStart, anchorEnd, viewportTop })
   }, [])
 
-  async function submitComment(body: string) {
+  async function submitComment(body: string, authorName: string) {
     if (!pendingComment) return
     const res = await fetch(`/api/amend/${reviewSlug}/comment`, {
       method: 'POST',
@@ -128,6 +128,7 @@ export default function ContentEditor({ content, editable, comments, activeComme
         anchor_start: pendingComment.anchorStart,
         anchor_end: pendingComment.anchorEnd,
         anchor_text: pendingComment.anchorText,
+        author_name: authorName || null,
       }),
     })
     if (!res.ok) return
