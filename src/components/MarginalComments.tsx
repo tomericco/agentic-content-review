@@ -1,14 +1,21 @@
 'use client'
 
 import { useEffect, useState, useRef, useLayoutEffect, type RefObject } from 'react'
-import { formatDistanceToNow, format } from 'date-fns'
+import { format } from 'date-fns'
+import { format as timeagoFormat, register as registerTimeagoLocale } from 'timeago.js'
+import timeagoEnShort from 'timeago.js/esm/lang/en_short'
 import Tooltip from './Tooltip'
 import { getDisplayName, setDisplayName } from '@/lib/displayName'
 import type { Comment } from '@/types'
 import type { CommentThread } from '@/lib/commentTree'
 
+registerTimeagoLocale('en_short', timeagoEnShort)
+
+// Compact relative time (e.g. "1h ago", "3d ago") — the full "1 hour ago"
+// format from date-fns wraps to two lines in the narrow comment card.
+// Scoped to comments only — the rest of the app doesn't use relative time.
 function timeAgo(dateStr: string): string {
-  return formatDistanceToNow(new Date(dateStr), { addSuffix: true })
+  return timeagoFormat(new Date(dateStr), 'en_short') as string
 }
 
 function fullTimestamp(dateStr: string): string {

@@ -89,11 +89,12 @@ export default function CommentPopover({ anchorText, viewportTop, onSubmit, onCl
           if (e.key === 'Escape') onClose()
         }}
       />
-      <div className="flex justify-end gap-1.5 pt-1 border-t border-[#f3f4f6]">
-        <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+      <div className="flex justify-end gap-1.5 pt-1">
+        <Button variant="ghost" size="sm" className="!text-[12px]" onClick={onClose}>Cancel</Button>
         <Button
           variant="primary"
           size="sm"
+          className="!text-[12px]"
           onClick={handleSubmit}
           disabled={!body.trim() || submitting}
         >
