@@ -11,7 +11,7 @@ export interface Review {
   context: string | null
   access: AccessMode
   agent_model: string | null
-  author_email: string
+  author_email: string | null
   reviewer_email: string | null
   status: ReviewStatus
   final_content: string | null

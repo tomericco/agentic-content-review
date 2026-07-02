@@ -12,7 +12,7 @@ export interface UploadInput {
   context?: string
   access: AccessMode
   agent_model?: string
-  author_email: string
+  author_email?: string
   reviewer_email?: string
 }
 
@@ -41,13 +41,13 @@ export function validateUpload(body: unknown): ValidationResult<UploadInput> {
   }
   const b = body as Record<string, unknown>
 
-  for (const field of ['title', 'content', 'content_type', 'access', 'author_email']) {
+  for (const field of ['title', 'content', 'content_type', 'access']) {
     if (required(b, field)) {
       return { error: `Missing required field: ${field}`, code: `missing_field:${field}` }
     }
   }
 
-  if (!isValidEmail(b.author_email)) {
+  if (b.author_email !== undefined && !isValidEmail(b.author_email)) {
     return { error: 'author_email must be a valid email address', code: 'invalid_email:author_email' }
   }
 
@@ -76,7 +76,7 @@ export function validateUpload(body: unknown): ValidationResult<UploadInput> {
       context: b.context as string | undefined,
       access: b.access as AccessMode,
       agent_model: b.agent_model as string | undefined,
-      author_email: b.author_email as string,
+      author_email: b.author_email as string | undefined,
       reviewer_email: b.reviewer_email as string | undefined,
     },
   }

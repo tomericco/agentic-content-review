@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Logo from "@/components/Logo";
 
 const AGENT_INSTRUCTIONS = `To submit content for human review, POST to:
 https://www.amend.to/api/upload
@@ -96,7 +97,7 @@ export default function Home() {
       />
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white">
-        <span className="text-xl font-semibold tracking-tight">amend</span>
+        <Logo />
         <Link href="/docs" className="text-sm font-medium text-zinc-500 hover:text-black">
           Docs
         </Link>

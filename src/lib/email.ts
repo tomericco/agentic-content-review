@@ -27,7 +27,7 @@ export async function notifyReviewer(review: Review): Promise<void> {
 }
 
 export async function notifyAuthor(review: Review, comments: Comment[]): Promise<void> {
-  if (!process.env.RESEND_API_KEY) return
+  if (!review.author_email || !process.env.RESEND_API_KEY) return
   const summary = buildSummary(review, comments)
   const statusLabel = review.status === 'approved' ? 'Approved' : 'Changes Requested'
 

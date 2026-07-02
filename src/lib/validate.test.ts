@@ -60,6 +60,13 @@ describe('validateUpload', () => {
     expect('error' in result && result.code).toBe('invalid_email:author_email')
   })
 
+  it('accepts omitted author_email', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { author_email, ...withoutAuthorEmail } = validUpload
+    const result = validateUpload(withoutAuthorEmail)
+    expect('data' in result).toBe(true)
+  })
+
   it('accepts valid reviewer_email', () => {
     const result = validateUpload({ ...validUpload, reviewer_email: 'reviewer@example.com' })
     expect('data' in result).toBe(true)

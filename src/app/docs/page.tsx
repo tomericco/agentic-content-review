@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 const BASE = "https://www.amend.to";
 
@@ -205,9 +206,7 @@ export default function DocsPage() {
       />
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-zinc-100">
-        <Link href="/" className="text-base font-semibold tracking-tight">
-          amend
-        </Link>
+        <Logo />
         <Link href="/docs" className="text-sm font-medium text-zinc-500 hover:text-black">
           Docs
         </Link>
@@ -319,8 +318,8 @@ export default function DocsPage() {
                     ["content", "string", "Markdown or plain text content"],
                     ["content_type", '"long_form"', "Content type (only long_form supported)"],
                     ["access", '"comment_and_edit" | "comment"', "Whether the reviewer can edit inline"],
-                    ["author_email", "string", "Email of the agent/author"],
-                    ["reviewer_email", "string", "Email shown on the review page"],
+                    ["author_email", "string (optional)", "Email of the agent/author"],
+                    ["reviewer_email", "string (optional)", "Email shown on the review page"],
                     ["webhook_url", "string (optional)", "URL to POST the decision to when reviewer decides"],
                   ].map(([field, type, desc]) => (
                     <tr key={field}>

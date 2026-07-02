@@ -33,7 +33,7 @@ export async function createReview(input: UploadInput, slug: string): Promise<Re
       context: input.context ?? null,
       access: input.access,
       agent_model: input.agent_model ?? null,
-      author_email: input.author_email,
+      author_email: input.author_email ?? null,
       reviewer_email: input.reviewer_email ?? null,
       status: 'pending',
     })
