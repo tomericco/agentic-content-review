@@ -11,6 +11,13 @@ import { createClient } from '@supabase/supabase-js'
 const PRODUCTION_PROJECT_REF = 'dvbugpltrlvgdcaiwyac'
 const SAMPLE_SLUG = 'dev-sample-review'
 
+const SAMPLE_CONTENT =
+  'This is a constant sample review, seeded automatically for local development. ' +
+  'It talks about a new feature launch and includes a few sentences worth highlighting and discussing. ' +
+  'Select any text here to add a comment, and use Reply on a comment to test threaded replies.\n\n' +
+  '![A sample image](https://picsum.photos/800/400)\n\n' +
+  'Images in the content above render via the Tiptap image extension — useful for testing image rendering too.'
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -50,10 +57,7 @@ async function main() {
   const { error: insertError } = await supabase.from('reviews').insert({
     slug: SAMPLE_SLUG,
     title: 'Dev sample review',
-    content:
-      'This is a constant sample review, seeded automatically for local development. ' +
-      'It talks about a new feature launch and includes a few sentences worth highlighting and discussing. ' +
-      'Select any text here to add a comment, and use Reply on a comment to test threaded replies.',
+    content: SAMPLE_CONTENT,
     content_type: 'long_form',
     context: 'Seeded by scripts/seed-dev.mjs — safe to comment on, edit, or decide freely.',
     access: 'comment_and_edit',
