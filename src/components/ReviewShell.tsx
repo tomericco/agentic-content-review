@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import type { Review, Comment } from '@/types'
+import { buildCommentThreads, collectDescendantIds } from '@/lib/commentTree'
 import DecisionHeader from './DecisionHeader'
 import ContentEditor from './ContentEditor'
 import MarginalComments from './MarginalComments'
@@ -65,8 +66,19 @@ export default function ReviewShell({ review, initialComments }: Props) {
   }
 
   function handleDeleteComment(id: string) {
-    setComments((prev) => prev.filter((c) => String(c.id) !== id))
+    // Deleting a comment cascades to its replies in the DB (ON DELETE CASCADE) —
+    // remove the same subtree from local state so it doesn't leave orphaned
+    // replies that would misrender as a bogus new thread.
+    setComments((prev) => {
+      const toRemove = new Set(collectDescendantIds(prev, id))
+      return prev.filter((c) => !toRemove.has(String(c.id)))
+    })
   }
+
+  // Only root (anchored) comments can be highlighted in the editor or listed
+  // in the "Request Changes" preview — replies have no anchor of their own.
+  const rootComments = useMemo(() => comments.filter((c) => c.parent_id === null), [comments])
+  const threads = useMemo(() => buildCommentThreads(comments), [comments])
 
   const words = wordCount(editedContent)
 
@@ -100,7 +112,7 @@ export default function ReviewShell({ review, initialComments }: Props) {
         <ContentEditor
           content={editedContent}
           editable={review.access === 'comment_and_edit' && !decided}
-          comments={comments}
+          comments={rootComments}
           activeCommentId={activeCommentId}
           onChange={handleContentChange}
           onAddComment={handleAddComment}
@@ -122,14 +134,16 @@ export default function ReviewShell({ review, initialComments }: Props) {
 
         {/* Marginal comments float to the right of the article */}
         <MarginalComments
-          comments={comments}
+          threads={threads}
           containerRef={editorContainerRef}
           editorVersion={editorVersion}
           activeCommentId={activeCommentId}
           reviewSlug={review.slug}
+          onAddComment={handleAddComment}
           onUpdateComment={handleUpdateComment}
           onDeleteComment={handleDeleteComment}
           onSetActiveComment={setActiveCommentId}
+          decided={decided}
         />
       </div>
 
@@ -144,7 +158,7 @@ export default function ReviewShell({ review, initialComments }: Props) {
 
       {showRequestChanges && (
         <RequestChangesModal
-          comments={comments}
+          comments={rootComments}
           reviewSlug={review.slug}
           onClose={() => setShowRequestChanges(false)}
           onSubmit={() => { setDecided(true); setCurrentStatus('changes_requested') }}
