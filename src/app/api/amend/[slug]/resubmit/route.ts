@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { getReviewBySlug, resubmitReview } from '@/lib/db'
+import { getReviewBySlug, resubmitReview, deleteCommentsByReviewId } from '@/lib/db'
 // import { notifyReviewer } from '@/lib/email' // email sending disabled for now
 
 export async function PATCH(
@@ -28,6 +28,10 @@ export async function PATCH(
     }
 
     const updated = await resubmitReview(review.id, content)
+
+    // The new content invalidates every existing comment's anchor — clear
+    // them so the reviewer starts the next round with a clean document.
+    await deleteCommentsByReviewId(review.id)
 
     // notifyReviewer(updated).catch(() => {}) // email sending disabled for now
 

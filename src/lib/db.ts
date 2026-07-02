@@ -130,6 +130,14 @@ export async function getCommentsByReviewId(reviewId: string): Promise<Comment[]
   return (data ?? []) as Comment[]
 }
 
+// Resubmitting replaces the content entirely, so existing comments' anchor
+// positions (and any text-based fallback re-anchoring) no longer correspond
+// to anything meaningful in the new document — clear them for a clean slate.
+export async function deleteCommentsByReviewId(reviewId: string): Promise<void> {
+  const { error } = await supabase.from('comments').delete().eq('review_id', reviewId)
+  if (error) throw new Error(`DB error deleting comments: ${error.message}`)
+}
+
 export async function resubmitReview(id: string, content: string): Promise<Review> {
   const { data, error } = await supabase
     .from('reviews')

@@ -369,6 +369,8 @@ export default function DocsPage() {
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
                 Send a revised draft after changes were requested. Resets the review back to <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">pending</code> so
                 the reviewer sees the new version. Only valid when the review isn&apos;t currently <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">pending</code>.
+                This also clears all existing comments — they anchor to text/image positions in the old content,
+                which no longer apply to the new draft.
               </p>
               <CodeBlock code={RESUBMIT_EXAMPLE} />
               <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
