@@ -26,6 +26,8 @@ function randomWordChain(pickInt: IntPicker): string {
   return [randomWord(adjectives, pickInt), randomWord(adjectives, pickInt), randomWord(adjectives, pickInt), randomWord(animals, pickInt)].join('-')
 }
 
+const MAX_SLUG_BASE_LENGTH = 50
+
 export function slugify(title: string): string {
   return title
     .toLowerCase()
@@ -36,8 +38,18 @@ export function slugify(title: string): string {
     .replace(/^-|-$/g, '')
 }
 
+// Titles have no length limit at the API layer, but the slug is a URL and a
+// UI label — cap the readable prefix so one very long title can't produce an
+// unbounded slug. Cuts at a hyphen boundary so it doesn't chop a word in half.
+function truncateBase(base: string, maxLength = MAX_SLUG_BASE_LENGTH): string {
+  if (base.length <= maxLength) return base
+  const truncated = base.slice(0, maxLength)
+  const lastHyphen = truncated.lastIndexOf('-')
+  return (lastHyphen > 0 ? truncated.slice(0, lastHyphen) : truncated).replace(/-+$/, '')
+}
+
 export function generateSlug(title: string, existingSlugs: string[], pickInt: IntPicker = cryptoPickInt): string {
-  const base = slugify(title) || 'review'
+  const base = truncateBase(slugify(title)) || 'review'
   const taken = new Set(existingSlugs)
 
   for (let attempt = 0; attempt < 5; attempt++) {

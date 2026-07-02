@@ -26,7 +26,8 @@ type ValidationResult<T> = { data: T } | { error: string; code: string }
 
 function required(body: Record<string, unknown>, field: string): string | null {
   const val = body[field]
-  if (val === undefined || val === null || val === '') return field
+  if (val === undefined || val === null) return field
+  if (typeof val === 'string' && val.trim() === '') return field
   return null
 }
 

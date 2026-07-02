@@ -25,6 +25,16 @@ describe('validateUpload', () => {
     expect('error' in result && result.code).toBe('missing_field:content')
   })
 
+  it('rejects whitespace-only content', () => {
+    const result = validateUpload({ ...validUpload, content: '   \n\t  ' })
+    expect('error' in result && result.code).toBe('missing_field:content')
+  })
+
+  it('rejects whitespace-only title', () => {
+    const result = validateUpload({ ...validUpload, title: '   ' })
+    expect('error' in result && result.code).toBe('missing_field:title')
+  })
+
   it('rejects missing content_type', () => {
     const result = validateUpload({ ...validUpload, content_type: undefined })
     expect('error' in result && result.code).toBe('missing_field:content_type')

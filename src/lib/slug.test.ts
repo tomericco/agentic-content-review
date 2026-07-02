@@ -72,4 +72,18 @@ describe('generateSlug', () => {
     const slug = generateSlug('!!!', [])
     expect(slug.startsWith('review-')).toBe(true)
   })
+
+  it('truncates a very long title instead of producing an unbounded slug', () => {
+    const longTitle = 'word '.repeat(50).trim() // slugifies to ~250 chars
+    const slug = generateSlug(longTitle, [])
+    const base = slug.split(/-(?:[a-z]+-[a-z]+-[a-z]+-[a-z]+)$/)[0]
+    expect(base.length).toBeLessThanOrEqual(50)
+  })
+
+  it('does not chop a word in half when truncating', () => {
+    const longTitle = 'a'.repeat(48) + ' longword'
+    const slug = generateSlug(longTitle, [])
+    expect(slug.startsWith('a'.repeat(48) + '-longword-')).toBe(false)
+    expect(slug.startsWith('a'.repeat(48) + '-')).toBe(true)
+  })
 })
