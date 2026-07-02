@@ -1,9 +1,14 @@
 import type { Review, Comment } from '@/types'
+import { buildCommentThreads } from './commentTree'
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Pending',
   approved: 'Approved',
   changes_requested: 'Changes Requested',
+}
+
+function authorSuffix(comment: Comment): string {
+  return comment.author_name ? ` — ${comment.author_name}` : ''
 }
 
 export function buildSummary(review: Review, comments: Comment[]): string {
@@ -22,10 +27,14 @@ export function buildSummary(review: Review, comments: Comment[]): string {
   }
 
   if (comments.length > 0) {
+    const threads = buildCommentThreads(comments)
     lines.push(`## Comments (${comments.length})`, '')
-    comments.forEach((c, i) => {
-      lines.push(`${i + 1}. On: "${c.anchor_text}"`)
-      lines.push(`   → "${c.body}"`)
+    threads.forEach((thread, i) => {
+      lines.push(`${i + 1}. On: "${thread.root.anchor_text}"`)
+      lines.push(`   → "${thread.root.body}"${authorSuffix(thread.root)}`)
+      thread.replies.forEach((reply) => {
+        lines.push(`     ↳ "${reply.body}"${authorSuffix(reply)}`)
+      })
       lines.push('')
     })
   }

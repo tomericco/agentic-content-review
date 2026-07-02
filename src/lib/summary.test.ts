@@ -13,14 +13,14 @@ const baseReview: Review = {
 }
 
 const comments: Comment[] = [
-  { id: 'c1', review_id: 'r1', body: 'Too wordy', anchor_text: 'final version',
-    anchor_start: 0, anchor_end: 13, created_at: '2026-06-30T00:30:00Z' },
+  { id: 'c1', review_id: 'r1', parent_id: null, body: 'Too wordy', anchor_text: 'final version',
+    anchor_start: 0, anchor_end: 13, author_name: null, created_at: '2026-06-30T00:30:00Z' },
 ]
 
 describe('buildSummary', () => {
   it('includes title, status, decided_at', () => {
     const s = buildSummary(baseReview, [])
-    expect(s).toContain('# Review Summary: My Article')
+    expect(s).toContain('# Amend Summary: My Article')
     expect(s).toContain('**Status:** Approved')
     expect(s).toContain('2026-06-30T01:00:00Z')
   })
@@ -35,6 +35,39 @@ describe('buildSummary', () => {
     const s = buildSummary(baseReview, comments)
     expect(s).toContain('On: "final version"')
     expect(s).toContain('Too wordy')
+  })
+
+  it('shows author name when present, omits it when absent', () => {
+    const named: Comment = { ...comments[0], id: 'c2', author_name: 'Quick Falcon' }
+    const s = buildSummary(baseReview, [named])
+    expect(s).toContain('"Too wordy" — Quick Falcon')
+
+    const anonymous = buildSummary(baseReview, comments)
+    expect(anonymous).toContain('"Too wordy"')
+    expect(anonymous).not.toContain(' — ')
+  })
+
+  it('renders replies as a flat list under their root, including a reply-to-a-reply', () => {
+    const root = comments[0]
+    const reply1: Comment = {
+      id: 'c2', review_id: 'r1', parent_id: 'c1', body: 'Agreed, will rewrite',
+      anchor_start: null, anchor_end: null, anchor_text: null,
+      author_name: 'Silent Otter', created_at: '2026-06-30T00:31:00Z',
+    }
+    const reply2: Comment = {
+      id: 'c3', review_id: 'r1', parent_id: 'c2', body: 'Thanks!', // replies to reply1, not root
+      anchor_start: null, anchor_end: null, anchor_text: null,
+      author_name: 'Quick Falcon', created_at: '2026-06-30T00:32:00Z',
+    }
+
+    const s = buildSummary(baseReview, [root, reply1, reply2])
+
+    expect(s).toContain('## Comments (3)')
+    expect(s).toContain('1. On: "final version"')
+    expect(s).toContain('   → "Too wordy"')
+    expect(s).toContain('     ↳ "Agreed, will rewrite" — Silent Otter')
+    // reply-to-a-reply still renders as a flat entry under the same root, not nested further
+    expect(s).toContain('     ↳ "Thanks!" — Quick Falcon')
   })
 
   it('shows Changes Requested status and general feedback', () => {
