@@ -17,11 +17,12 @@ export default function AgentContextDrawer({ context, onClose }: Props) {
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-30">
+    <div className="fixed inset-0 bg-black/40 z-30" onClick={onClose}>
       <div
         className={`absolute top-0 right-0 h-full w-full max-w-sm bg-white shadow-xl p-6 flex flex-col gap-3 overflow-y-auto transition-transform duration-200 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-900 font-ui">Agent context</h2>

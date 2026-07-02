@@ -43,7 +43,7 @@ export default function ApproveModal({ reviewSlug, editedContent, onClose, onSub
       <div className="bg-white rounded-md shadow-xl w-full max-w-md p-6">
         <h2 className="text-base font-semibold text-gray-900 mb-1 font-ui">Approve content</h2>
         <p className="text-[13px] text-[#6b7280] font-ui mb-4">
-          The agent will receive the final content along with all inline comments. This cannot be undone.
+          The agent will receive the final content along with all inline comments, and the review will be closed. This cannot be undone.
         </p>
 
         <div className="mb-4">
