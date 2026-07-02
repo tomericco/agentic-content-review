@@ -3,10 +3,21 @@
 import { useEffect, useState, useRef, useLayoutEffect, type RefObject } from 'react'
 import Image from 'next/image'
 import { format } from 'date-fns'
+import { format as timeagoFormat, register as registerTimeagoLocale } from 'timeago.js'
+import timeagoEnShort from 'timeago.js/esm/lang/en_short'
 import Tooltip from './Tooltip'
 import { getDisplayName, setDisplayName } from '@/lib/displayName'
 import type { Comment } from '@/types'
 import type { CommentThread } from '@/lib/commentTree'
+
+registerTimeagoLocale('en_short', timeagoEnShort)
+
+// Compact relative time (e.g. "1h ago", "3d ago") — the full "1 hour ago"
+// format from date-fns wraps to two lines in the narrow comment card.
+// Scoped to comments only — the rest of the app doesn't use relative time.
+function timeAgo(dateStr: string): string {
+  return timeagoFormat(new Date(dateStr), 'en_short') as string
+}
 
 function fullTimestamp(dateStr: string): string {
   return format(new Date(dateStr), 'MMM d, yyyy, h:mm a')
@@ -131,9 +142,9 @@ function CommentRow({
         <p className="text-[13px] text-[#000000] leading-[1.4]">{comment.body}</p>
       )}
 
-      <div className="relative mt-1.5 min-h-[18px]">
+      <div className="flex items-center justify-between mt-1.5 min-h-[18px]">
         {editing ? (
-          <div className="flex items-center justify-between">
+          <>
             <span className="text-[11px] text-[#9ca3af]">esc cancel</span>
             <button
               className="text-[11px] font-medium text-[#000000] hover:opacity-60 cursor-pointer disabled:opacity-30"
@@ -142,35 +153,41 @@ function CommentRow({
             >
               {saving ? 'Saving…' : 'Save'}
             </button>
-          </div>
+          </>
         ) : (
           <>
-            {/* Default: avatar + name. Swaps to actions on hover, in the same box. */}
             <Tooltip content={fullTimestamp(comment.created_at)}>
-              <span className="inline-flex items-center gap-1.5 opacity-100 group-hover:opacity-0 transition-opacity">
+              <span className="text-[11px] text-[#9ca3af]">{timeAgo(comment.created_at)}</span>
+            </Tooltip>
+
+            {/* Right side: avatar + name by default, swaps to actions on hover.
+                Grid overlay (not absolute positioning) so the box sizes to
+                whichever layer is wider, instead of clipping to the name's width. */}
+            <div className="grid justify-items-end">
+              <span className="col-start-1 row-start-1 inline-flex items-center gap-1.5 opacity-100 group-hover:opacity-0 group-hover:pointer-events-none transition-opacity">
                 <Avatar name={authorName} />
                 <span className="text-[11px] font-medium text-[#374151] truncate">{authorName}</span>
               </span>
-            </Tooltip>
-            <div className="absolute inset-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
-                onClick={() => onReply(String(comment.id))}
-              >
-                Reply
-              </button>
-              <button
-                className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
-                onClick={() => setEditing(true)}
-              >
-                Edit
-              </button>
-              <button
-                className="text-[11px] text-[#6b7280] hover:text-red-500 cursor-pointer"
-                onClick={handleDelete}
-              >
-                Delete
-              </button>
+              <div className="col-start-1 row-start-1 flex items-center gap-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity">
+                <button
+                  className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
+                  onClick={() => onReply(String(comment.id))}
+                >
+                  Reply
+                </button>
+                <button
+                  className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
+                  onClick={() => setEditing(true)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="text-[11px] text-[#6b7280] hover:text-red-500 cursor-pointer"
+                  onClick={handleDelete}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </>
         )}
