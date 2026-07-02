@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { hostname: "cdn.simpleicons.org" },
+      { hostname: "api.dicebear.com" },
     ],
   },
   async rewrites() {

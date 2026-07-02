@@ -23,7 +23,6 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^6.16.0",
-    "timeago.js": "^4.0.2",
     "tiptap-markdown": "^0.9.0",
     "unique-names-generator": "^4.7.1"
   },

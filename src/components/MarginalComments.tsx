@@ -1,22 +1,12 @@
 'use client'
 
 import { useEffect, useState, useRef, useLayoutEffect, type RefObject } from 'react'
+import Image from 'next/image'
 import { format } from 'date-fns'
-import { format as timeagoFormat, register as registerTimeagoLocale } from 'timeago.js'
-import timeagoEnShort from 'timeago.js/esm/lang/en_short'
 import Tooltip from './Tooltip'
 import { getDisplayName, setDisplayName } from '@/lib/displayName'
 import type { Comment } from '@/types'
 import type { CommentThread } from '@/lib/commentTree'
-
-registerTimeagoLocale('en_short', timeagoEnShort)
-
-// Compact relative time (e.g. "1h ago", "3d ago") — the full "1 hour ago"
-// format from date-fns wraps to two lines in the narrow comment card.
-// Scoped to comments only — the rest of the app doesn't use relative time.
-function timeAgo(dateStr: string): string {
-  return timeagoFormat(new Date(dateStr), 'en_short') as string
-}
 
 function fullTimestamp(dateStr: string): string {
   return format(new Date(dateStr), 'MMM d, yyyy, h:mm a')
@@ -41,6 +31,19 @@ interface Props {
 
 interface PositionedThread extends CommentThread {
   top: number
+}
+
+function Avatar({ name }: { name: string }) {
+  return (
+    <Image
+      src={`https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(name)}`}
+      alt=""
+      width={16}
+      height={16}
+      unoptimized
+      className="rounded-full shrink-0"
+    />
+  )
 }
 
 // One row within a thread card: the root comment, or one of its flat replies.
@@ -101,16 +104,14 @@ function CommentRow({
     onDelete(String(comment.id))
   }
 
+  const authorName = comment.author_name || 'Anonymous'
+
   return (
     <div className="group">
       {showAnchor && comment.anchor_text && (
         <p className="text-[11px] text-[#9ca3af] italic mb-1.5 truncate border-l-2 border-amber-300 pl-2">
           &quot;{comment.anchor_text.slice(0, 50)}{comment.anchor_text.length > 50 ? '…' : ''}&quot;
         </p>
-      )}
-
-      {comment.author_name && (
-        <p className="text-[11px] font-medium text-[#374151] mb-0.5">{comment.author_name}</p>
       )}
 
       {editing ? (
@@ -130,9 +131,9 @@ function CommentRow({
         <p className="text-[13px] text-[#000000] leading-[1.4]">{comment.body}</p>
       )}
 
-      <div className="flex items-center justify-between mt-1.5 min-h-[18px]">
+      <div className="relative mt-1.5 min-h-[18px]">
         {editing ? (
-          <>
+          <div className="flex items-center justify-between">
             <span className="text-[11px] text-[#9ca3af]">esc cancel</span>
             <button
               className="text-[11px] font-medium text-[#000000] hover:opacity-60 cursor-pointer disabled:opacity-30"
@@ -141,13 +142,17 @@ function CommentRow({
             >
               {saving ? 'Saving…' : 'Save'}
             </button>
-          </>
+          </div>
         ) : (
           <>
+            {/* Default: avatar + name. Swaps to actions on hover, in the same box. */}
             <Tooltip content={fullTimestamp(comment.created_at)}>
-              <span className="text-[11px] text-[#9ca3af]">{timeAgo(comment.created_at)}</span>
+              <span className="inline-flex items-center gap-1.5 opacity-100 group-hover:opacity-0 transition-opacity">
+                <Avatar name={authorName} />
+                <span className="text-[11px] font-medium text-[#374151] truncate">{authorName}</span>
+              </span>
             </Tooltip>
-            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
                 onClick={() => onReply(String(comment.id))}
