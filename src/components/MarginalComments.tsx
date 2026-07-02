@@ -117,7 +117,7 @@ function CommentRow({
         <textarea
           ref={textareaRef}
           rows={1}
-          className="w-full text-[13px] text-[#000000] leading-[1.4] bg-transparent border-0 border-b border-[#d1d5db] outline-none resize-none p-0 m-0 font-[inherit]"
+          className="w-full text-[13px] text-[#000000] leading-[1.4] bg-transparent border-0 outline-none resize-none p-0 m-0 font-[inherit]"
           value={draft}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => {
@@ -226,7 +226,7 @@ function ReplyComposer({
       <textarea
         ref={textareaRef}
         rows={2}
-        className="w-full text-[13px] text-[#000000] leading-[1.4] bg-transparent border-0 border-b border-[#d1d5db] outline-none resize-none p-0 m-0 font-[inherit]"
+        className="w-full text-[13px] text-[#000000] leading-[1.4] bg-transparent border-0 outline-none resize-none p-0 m-0 font-[inherit]"
         placeholder="Reply…"
         value={body}
         onChange={(e) => setBody(e.target.value)}
