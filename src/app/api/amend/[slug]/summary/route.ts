@@ -14,7 +14,9 @@ export async function GET(
     }
 
     const comments = await getCommentsByReviewId(review.id)
-    const summary = buildSummary(review, comments)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
+    const resubmitUrl = `${baseUrl}/api/amend/${review.slug}/resubmit`
+    const summary = buildSummary(review, comments, resubmitUrl)
 
     return new NextResponse(summary, {
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },

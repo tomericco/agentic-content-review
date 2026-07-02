@@ -79,6 +79,26 @@ describe('buildSummary', () => {
     expect(s).toContain('Fix the tone')
   })
 
+  it('includes a resubmit next-step when changes are requested and a resubmitUrl is given', () => {
+    const review = { ...baseReview, status: 'changes_requested' as const,
+      changes_requested: 'Fix the tone', final_content: null }
+    const s = buildSummary(review, [], 'https://amend.to/api/amend/my-article/resubmit')
+    expect(s).toContain('## Next Step')
+    expect(s).toContain('https://amend.to/api/amend/my-article/resubmit')
+  })
+
+  it('omits the next-step section when no resubmitUrl is given', () => {
+    const review = { ...baseReview, status: 'changes_requested' as const,
+      changes_requested: 'Fix the tone', final_content: null }
+    const s = buildSummary(review, [])
+    expect(s).not.toContain('## Next Step')
+  })
+
+  it('omits the next-step section for statuses other than changes_requested', () => {
+    const s = buildSummary(baseReview, [], 'https://amend.to/api/amend/my-article/resubmit')
+    expect(s).not.toContain('## Next Step')
+  })
+
   it('shows pending status', () => {
     const review = { ...baseReview, status: 'pending' as const, decided_at: null, final_content: null }
     const s = buildSummary(review, [])

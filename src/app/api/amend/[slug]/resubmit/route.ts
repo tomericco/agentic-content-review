@@ -36,8 +36,9 @@ export async function PATCH(
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
     return NextResponse.json({
       slug: updated.slug,
-      review_url: `${baseUrl}/${updated.slug}`,
+      amend_url: `${baseUrl}/${updated.slug}`,
       summary_url: `${baseUrl}/api/amend/${updated.slug}/summary`,
+      resubmit_url: `${baseUrl}/api/amend/${updated.slug}/resubmit`,
       status: updated.status,
     })
   } catch (err) {

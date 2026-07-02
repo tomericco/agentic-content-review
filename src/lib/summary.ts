@@ -11,7 +11,7 @@ function authorSuffix(comment: Comment): string {
   return comment.author_name ? ` — ${comment.author_name}` : ''
 }
 
-export function buildSummary(review: Review, comments: Comment[]): string {
+export function buildSummary(review: Review, comments: Comment[], resubmitUrl?: string): string {
   const lines: string[] = []
 
   lines.push(`# Amend Summary: ${review.title}`, '')
@@ -41,6 +41,16 @@ export function buildSummary(review: Review, comments: Comment[]): string {
 
   if (review.status === 'changes_requested' && review.changes_requested) {
     lines.push('## General Feedback', '', review.changes_requested, '')
+  }
+
+  if (review.status === 'changes_requested' && resubmitUrl) {
+    lines.push(
+      '## Next Step',
+      '',
+      `Revise the content based on the feedback above, then PATCH your new version to:`,
+      resubmitUrl,
+      ''
+    )
   }
 
   return lines.join('\n')

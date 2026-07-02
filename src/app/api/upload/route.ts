@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       slug: review.slug,
       amend_url: `${baseUrl}/${review.slug}`,
       summary_url: `${baseUrl}/api/amend/${review.slug}/summary`,
+      resubmit_url: `${baseUrl}/api/amend/${review.slug}/resubmit`,
       status: review.status,
     }, { status: 201 })
   } catch (err) {

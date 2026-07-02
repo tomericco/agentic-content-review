@@ -21,7 +21,8 @@ Content-Type: application/json
 const UPLOAD_RESPONSE = `{
   "slug": "abc123",
   "amend_url": "${BASE}/abc123",
-  "summary_url": "${BASE}/api/amend/abc123/summary"
+  "summary_url": "${BASE}/api/amend/abc123/summary",
+  "resubmit_url": "${BASE}/api/amend/abc123/resubmit"
 }`;
 
 const SUMMARY_EXAMPLE = `GET ${BASE}/api/amend/[slug]/summary`;
@@ -42,6 +43,39 @@ We shipped three features this quarter...
 ## Decision
 
 Approved with minor edits applied inline.`;
+
+const SUMMARY_RESPONSE_CHANGES_REQUESTED = `# Amend Summary: Q2 product update
+
+**Status:** changes_requested
+
+## Comments (1)
+
+1. On: "we dominated"
+   → "Consider softening the tone" — Quick Falcon
+
+## General Feedback
+
+Tone is too aggressive for this audience — please soften it.
+
+## Next Step
+
+Revise the content based on the feedback above, then PATCH your new version to:
+${BASE}/api/amend/abc123/resubmit`;
+
+const RESUBMIT_EXAMPLE = `PATCH ${BASE}/api/amend/abc123/resubmit
+Content-Type: application/json
+
+{
+  "content": "We shipped three features this quarter, with a lighter tone..."
+}`;
+
+const RESUBMIT_RESPONSE = `{
+  "slug": "abc123",
+  "amend_url": "${BASE}/abc123",
+  "summary_url": "${BASE}/api/amend/abc123/summary",
+  "resubmit_url": "${BASE}/api/amend/abc123/resubmit",
+  "status": "pending"
+}`;
 
 const WEBHOOK_PAYLOAD = `POST https://your-app.com/webhook/amend
 Content-Type: application/json
@@ -122,6 +156,7 @@ const NAV_SECTIONS = [
     links: [
       { label: "POST /upload", href: "#upload" },
       { label: "GET /summary", href: "#summary" },
+      { label: "PATCH /resubmit", href: "#resubmit" },
       { label: "Webhook payload", href: "#webhook" },
       { label: "Access control", href: "#access" },
     ],
@@ -262,8 +297,9 @@ export default function DocsPage() {
               </h2>
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
                 Submit content for review. Returns an <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">amend_url</code> to
-                send to the reviewer, and a <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">summary_url</code> your agent can poll
-                directly — no need to construct it yourself.
+                send to the reviewer, a <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">summary_url</code> your agent can poll
+                directly, and a <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">resubmit_url</code> to send a revised draft
+                if changes are requested — none of these need to be constructed by hand.
               </p>
               <CodeBlock code={UPLOAD_EXAMPLE} />
               <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
@@ -312,9 +348,33 @@ export default function DocsPage() {
               </p>
               <CodeBlock code={SUMMARY_EXAMPLE} />
               <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
-                Example response
+                Example response — approved
               </p>
               <CodeBlock code={SUMMARY_RESPONSE} />
+              <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
+                Example response — changes requested
+              </p>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                When changes are requested, the summary includes a <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">## Next Step</code> section
+                with the exact <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">resubmit_url</code> to PATCH your revised content to —
+                paste this whole response into your next prompt and the agent has everything it needs.
+              </p>
+              <CodeBlock code={SUMMARY_RESPONSE_CHANGES_REQUESTED} />
+            </section>
+
+            <section id="resubmit" className="scroll-mt-24">
+              <h2 className="text-xl font-semibold text-zinc-950 mt-12 mb-4 scroll-mt-24">
+                PATCH /api/amend/[slug]/resubmit
+              </h2>
+              <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
+                Send a revised draft after changes were requested. Resets the review back to <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">pending</code> so
+                the reviewer sees the new version. Only valid when the review isn&apos;t currently <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">pending</code>.
+              </p>
+              <CodeBlock code={RESUBMIT_EXAMPLE} />
+              <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
+                Response
+              </p>
+              <CodeBlock code={RESUBMIT_RESPONSE} />
             </section>
 
             <section id="webhook" className="scroll-mt-24">
