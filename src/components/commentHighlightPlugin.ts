@@ -19,8 +19,15 @@ function findCommentDecorations(doc: Node, comments: Comment[]): Decoration[] {
     // Verify the text still matches (fails if document was heavily edited).
     if (from > 0 && to > from && to <= doc.content.size) {
       try {
+        // Images have no text content to compare — if the position still
+        // points at an image node, trust it directly.
+        const node = doc.nodeAt(from)
+        if (node && node.type.name === 'image') {
+          decos.push(makeCommentDeco(doc, from, to, comment.id))
+          return
+        }
         if (doc.textBetween(from, to, ' ') === text) {
-          decos.push(makeCommentDeco(from, to, comment.id))
+          decos.push(makeCommentDeco(doc, from, to, comment.id))
           return
         }
       } catch { /* positions out of range */ }
@@ -40,14 +47,28 @@ function findCommentDecorations(doc: Node, comments: Comment[]): Decoration[] {
       }
     })
 
+    // Note: images have no text content, so they can't be re-found by this
+    // text search if their position drifts (e.g. content was heavily
+    // edited) — same degradation as a text anchor whose surrounding text
+    // changed enough that even the fallback can't relocate it.
     if (bestFrom !== -1) {
-      decos.push(makeCommentDeco(bestFrom, bestFrom + text.length, comment.id))
+      decos.push(makeCommentDeco(doc, bestFrom, bestFrom + text.length, comment.id))
     }
   })
   return decos
 }
 
-export function makeCommentDeco(from: number, to: number, commentId: number | string): Decoration {
+export function makeCommentDeco(doc: Node, from: number, to: number, commentId: number | string): Decoration {
+  const node = doc.nodeAt(from)
+  if (node && node.type.name === 'image') {
+    // Node decorations apply attrs directly to the image's own DOM element —
+    // an inline decoration can't meaningfully "wrap" an atomic leaf node.
+    return Decoration.node(
+      from, to,
+      { class: 'comment-highlight-image', 'data-comment-id': String(commentId) },
+      { commentId: String(commentId) },
+    )
+  }
   return Decoration.inline(
     from, to,
     { class: 'comment-highlight', 'data-comment-id': String(commentId) },

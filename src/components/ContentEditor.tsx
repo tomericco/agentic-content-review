@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
+import { NodeSelection } from '@tiptap/pm/state'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Image from '@tiptap/extension-image'
@@ -77,8 +78,14 @@ export default function ContentEditor({ content, editable, comments, activeComme
     },
     onSelectionUpdate({ editor: ed }) {
       const { from, to } = ed.state.selection
-      // Save selection for comment anchor
-      if (from !== to) {
+      const selection = ed.state.selection
+      // Save selection for comment anchor. Images have no text content, so
+      // they need their own branch — textBetween() would return '' for one
+      // and get silently ignored by the text-only check below.
+      if (selection instanceof NodeSelection && selection.node.type.name === 'image') {
+        const alt = (selection.node.attrs.alt as string | null)?.trim()
+        savedSelectionRef.current = { from, to, text: alt || 'Image' }
+      } else if (from !== to) {
         const text = ed.state.doc.textBetween(from, to, ' ')
         if (text.trim()) savedSelectionRef.current = { from, to, text }
       }
@@ -140,7 +147,7 @@ export default function ContentEditor({ content, editable, comments, activeComme
     if (editor && pendingComment.anchorStart !== pendingComment.anchorEnd) {
       editor.view.dispatch(
         editor.state.tr.setMeta(commentHighlightKey, [
-          makeCommentDeco(pendingComment.anchorStart, pendingComment.anchorEnd, comment.id),
+          makeCommentDeco(editor.state.doc, pendingComment.anchorStart, pendingComment.anchorEnd, comment.id),
         ])
       )
     }
@@ -154,7 +161,10 @@ export default function ContentEditor({ content, editable, comments, activeComme
   return (
     <div className="w-full">
       {activeCommentId && (
-        <style>{`.comment-highlight[data-comment-id="${activeCommentId}"] { background-color: #f6b519; }`}</style>
+        <style>{`
+          .comment-highlight[data-comment-id="${activeCommentId}"] { background-color: #f6b519; }
+          .comment-highlight-image[data-comment-id="${activeCommentId}"] { outline-color: #f6b519; }
+        `}</style>
       )}
       <FloatingToolbar
         editor={editor}

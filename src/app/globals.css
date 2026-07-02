@@ -47,3 +47,10 @@ body {
   border-radius: 3px;
   transition: background-color 150ms ease;
 }
+
+.comment-highlight-image {
+  outline: 3px solid #fde68a;
+  outline-offset: 2px;
+  border-radius: 12px;
+  transition: outline-color 150ms ease;
+}
