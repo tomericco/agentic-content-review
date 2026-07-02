@@ -44,3 +44,28 @@ export function buildCommentThreads(comments: Comment[]): CommentThread[] {
 
   return [...threadsByRootId.values()].sort((a, b) => a.root.created_at.localeCompare(b.root.created_at))
 }
+
+// Deleting a comment cascades to its replies in the DB (ON DELETE CASCADE on
+// parent_id). Client-side optimistic state needs the same behavior — this
+// returns the id plus every transitive descendant id, so the caller can
+// remove the whole subtree from local state and stay in sync with the DB.
+export function collectDescendantIds(comments: Comment[], id: string): string[] {
+  const childrenByParentId = new Map<string, string[]>()
+  for (const c of comments) {
+    if (c.parent_id === null) continue
+    const siblings = childrenByParentId.get(c.parent_id) ?? []
+    siblings.push(c.id)
+    childrenByParentId.set(c.parent_id, siblings)
+  }
+
+  const result: string[] = [id]
+  const queue = [id]
+  while (queue.length > 0) {
+    const current = queue.shift()!
+    for (const childId of childrenByParentId.get(current) ?? []) {
+      result.push(childId)
+      queue.push(childId)
+    }
+  }
+  return result
+}

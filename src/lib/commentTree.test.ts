@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Comment } from '@/types'
-import { buildCommentThreads } from './commentTree'
+import { buildCommentThreads, collectDescendantIds } from './commentTree'
 
 function makeComment(overrides: Partial<Comment> & Pick<Comment, 'id' | 'created_at'>): Comment {
   return {
@@ -96,5 +96,32 @@ describe('buildCommentThreads', () => {
 
   it('returns an empty array for no comments', () => {
     expect(buildCommentThreads([])).toEqual([])
+  })
+})
+
+describe('collectDescendantIds', () => {
+  it('returns just the id for a comment with no replies', () => {
+    const root = makeComment({ id: 'c1', created_at: '2026-01-01T00:00:00Z' })
+    expect(collectDescendantIds([root], 'c1')).toEqual(['c1'])
+  })
+
+  it('includes direct replies', () => {
+    const root = makeComment({ id: 'c1', created_at: '2026-01-01T00:00:00Z' })
+    const reply = makeComment({ id: 'c2', created_at: '2026-01-01T00:01:00Z', parent_id: 'c1' })
+    expect(collectDescendantIds([root, reply], 'c1').sort()).toEqual(['c1', 'c2'])
+  })
+
+  it('includes a reply-to-a-reply (multi-level descendants)', () => {
+    const root = makeComment({ id: 'c1', created_at: '2026-01-01T00:00:00Z' })
+    const reply1 = makeComment({ id: 'c2', created_at: '2026-01-01T00:01:00Z', parent_id: 'c1' })
+    const reply2 = makeComment({ id: 'c3', created_at: '2026-01-01T00:02:00Z', parent_id: 'c2' })
+    expect(collectDescendantIds([root, reply1, reply2], 'c1').sort()).toEqual(['c1', 'c2', 'c3'])
+  })
+
+  it('deleting a reply only collects its own descendants, not its siblings or ancestors', () => {
+    const root = makeComment({ id: 'c1', created_at: '2026-01-01T00:00:00Z' })
+    const reply1 = makeComment({ id: 'c2', created_at: '2026-01-01T00:01:00Z', parent_id: 'c1' })
+    const reply2 = makeComment({ id: 'c3', created_at: '2026-01-01T00:02:00Z', parent_id: 'c1' })
+    expect(collectDescendantIds([root, reply1, reply2], 'c2')).toEqual(['c2'])
   })
 })
