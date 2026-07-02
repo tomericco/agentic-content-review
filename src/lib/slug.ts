@@ -1,9 +1,30 @@
-const SLUG_WORDS = [
-  'amber', 'falcon', 'cedar', 'nova', 'echo', 'grove', 'ember', 'ridge',
-  'atlas', 'breeze', 'cove', 'dune', 'flint', 'haven', 'inlet', 'jade',
-  'kite', 'lark', 'marsh', 'nimbus', 'orbit', 'pine', 'quill', 'reef',
-  'stone', 'tide', 'vale', 'wren', 'zenith', 'blaze',
-]
+import { randomInt } from 'crypto'
+import { adjectives, animals } from 'unique-names-generator'
+
+// Picks a uniform random integer in [0, max). Injectable so tests can supply
+// a deterministic picker without mocking Node's crypto module.
+export type IntPicker = (max: number) => number
+
+// unique-names-generator's own picker uses Math.random(), which isn't
+// unguessable enough to be an access-control token — pick indices ourselves
+// with crypto.randomInt (uniform, no modulo bias) but keep its curated,
+// readable word lists.
+function cryptoPickInt(max: number): number {
+  return randomInt(max)
+}
+
+function randomWord(list: string[], pickInt: IntPicker): string {
+  return list[pickInt(list.length)]
+}
+
+// 3 adjectives (1202 words, ~10.2 bits each) + 1 animal (355 words, ~8.5 bits)
+// ~= 39 bits of entropy. The slug is the only access control on a review
+// (see docs), so it must never be derivable from the title alone — this
+// word chain is what makes it unguessable, not the title-derived prefix,
+// which exists purely for readability.
+function randomWordChain(pickInt: IntPicker): string {
+  return [randomWord(adjectives, pickInt), randomWord(adjectives, pickInt), randomWord(adjectives, pickInt), randomWord(animals, pickInt)].join('-')
+}
 
 export function slugify(title: string): string {
   return title
@@ -15,16 +36,15 @@ export function slugify(title: string): string {
     .replace(/^-|-$/g, '')
 }
 
-export function generateSlug(title: string, existingSlugs: string[]): string {
-  const base = slugify(title)
-  if (!existingSlugs.includes(base)) return base
-
+export function generateSlug(title: string, existingSlugs: string[], pickInt: IntPicker = cryptoPickInt): string {
+  const base = slugify(title) || 'review'
   const taken = new Set(existingSlugs)
-  for (const word of SLUG_WORDS) {
-    const candidate = `${base}-${word}`
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const candidate = `${base}-${randomWordChain(pickInt)}`
     if (!taken.has(candidate)) return candidate
   }
 
-  // Extremely unlikely fallback: all words taken, append timestamp fragment
-  return `${base}-${Date.now().toString(36)}`
+  // Astronomically unlikely fallback: a longer chain instead of looping forever.
+  return `${base}-${randomWordChain(pickInt)}-${randomWordChain(pickInt)}`
 }
