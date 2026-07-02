@@ -37,6 +37,7 @@ export async function PATCH(
     return NextResponse.json({
       slug: updated.slug,
       review_url: `${baseUrl}/${updated.slug}`,
+      summary_url: `${baseUrl}/api/amend/${updated.slug}/summary`,
       status: updated.status,
     })
   } catch (err) {

@@ -20,7 +20,8 @@ Content-Type: application/json
 
 const UPLOAD_RESPONSE = `{
   "slug": "abc123",
-  "amend_url": "${BASE}/abc123"
+  "amend_url": "${BASE}/abc123",
+  "summary_url": "${BASE}/api/amend/abc123/summary"
 }`;
 
 const SUMMARY_EXAMPLE = `GET ${BASE}/api/amend/[slug]/summary`;
@@ -250,7 +251,7 @@ export default function DocsPage() {
                   decide.
                 </li>
                 <li>
-                  Get the decision back via webhook — or poll <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">GET /api/amend/[slug]/summary</code> and paste it into your next prompt.
+                  Get the decision back via webhook — or poll the <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">summary_url</code> from step 1 and paste it into your next prompt.
                 </li>
               </ol>
             </section>
@@ -260,8 +261,9 @@ export default function DocsPage() {
                 POST /api/upload
               </h2>
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
-                Submit content for review. Returns a slug and an amend URL to send
-                to the reviewer.
+                Submit content for review. Returns an <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">amend_url</code> to
+                send to the reviewer, and a <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">summary_url</code> your agent can poll
+                directly — no need to construct it yourself.
               </p>
               <CodeBlock code={UPLOAD_EXAMPLE} />
               <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
