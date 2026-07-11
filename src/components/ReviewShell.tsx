@@ -37,15 +37,33 @@ export default function ReviewShell({ review, revisions, initialComments }: Prop
   const [copied, setCopied] = useState(false)
 
   const [revisionIndex, setRevisionIndex] = useState(revisions.length - 1)
+  const [revisionAnim, setRevisionAnim] = useState<string>('')
+  const animTimerRef = useRef<number | null>(null)
+  const ANIM_MS = 200
 
   const currentRevision = revisions[revisionIndex]
   const viewingLatest = revisionIndex === revisions.length - 1
 
   function goToRevision(target: number) {
     if (target < 0 || target >= revisions.length || target === revisionIndex) return
-    setRevisionIndex(target)
-    setActiveCommentId(null)
+    if (animTimerRef.current !== null) return // ignore input mid-transition
+    const forward = target > revisionIndex
+    setRevisionAnim(forward ? 'rev-exit-left' : 'rev-exit-right')
+    animTimerRef.current = window.setTimeout(() => {
+      setRevisionIndex(target)
+      setActiveCommentId(null)
+      setRevisionAnim(forward ? 'rev-enter-from-right' : 'rev-enter-from-left')
+      animTimerRef.current = window.setTimeout(() => {
+        setRevisionAnim('')
+        animTimerRef.current = null
+      }, ANIM_MS)
+    }, ANIM_MS)
   }
+
+  // Don't leave a mid-transition timer running after unmount.
+  useEffect(() => () => {
+    if (animTimerRef.current !== null) window.clearTimeout(animTimerRef.current)
+  }, [])
 
   useEffect(() => {
     // baselineContentRef is null until the editor fires its first onChange (which
@@ -144,7 +162,7 @@ export default function ReviewShell({ review, revisions, initialComments }: Prop
       </div>
 
       {/* Centered article — relative so comments + popover can float right */}
-      <div className="w-[680px] relative flex flex-col gap-6 py-10" ref={editorContainerRef}>
+      <div className={`w-[680px] relative flex flex-col gap-6 py-10 ${revisionAnim}`} ref={editorContainerRef}>
         <ContentEditor
           key={currentRevision.id}
           content={displayedContent}

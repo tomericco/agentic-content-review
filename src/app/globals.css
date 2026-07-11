@@ -54,3 +54,28 @@ body {
   border-radius: 12px;
   transition: outline-color 150ms ease;
 }
+
+/* Revision switching: content exits toward one side, the next revision
+   enters from the other. Direction classes are set by ReviewShell. */
+@keyframes rev-exit-left {
+  to { opacity: 0; transform: translateX(-24px); }
+}
+@keyframes rev-exit-right {
+  to { opacity: 0; transform: translateX(24px); }
+}
+@keyframes rev-enter-from-right {
+  from { opacity: 0; transform: translateX(24px); }
+}
+@keyframes rev-enter-from-left {
+  from { opacity: 0; transform: translateX(-24px); }
+}
+.rev-exit-left { animation: rev-exit-left 200ms ease-in forwards; }
+.rev-exit-right { animation: rev-exit-right 200ms ease-in forwards; }
+.rev-enter-from-right { animation: rev-enter-from-right 200ms ease-out; }
+.rev-enter-from-left { animation: rev-enter-from-left 200ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rev-exit-left, .rev-exit-right, .rev-enter-from-right, .rev-enter-from-left {
+    animation-duration: 1ms;
+  }
+}
