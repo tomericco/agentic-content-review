@@ -44,6 +44,11 @@ export async function createReview(input: UploadInput, slug: string): Promise<Re
   return data as Review
 }
 
+export async function deleteReview(id: string): Promise<void> {
+  const { error } = await supabase.from('reviews').delete().eq('id', id)
+  if (error) throw new Error(`DB error deleting review: ${error.message}`)
+}
+
 export async function getReviewBySlug(slug: string): Promise<Review | null> {
   const { data, error } = await supabase
     .from('reviews')

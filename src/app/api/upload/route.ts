@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateUpload } from '@/lib/validate'
 import { generateSlug } from '@/lib/slug'
-import { getExistingSlugs, createReview, createRevision } from '@/lib/db'
+import { getExistingSlugs, createReview, createRevision, deleteReview } from '@/lib/db'
 import { SITE_URL } from '@/lib/site'
 // import { notifyReviewer } from '@/lib/email' // email sending disabled for now
 
@@ -22,7 +22,15 @@ export async function POST(req: NextRequest) {
     const slug = generateSlug(validation.data.title, existingSlugs)
 
     const review = await createReview(validation.data, slug)
-    await createRevision(review.id, 1, validation.data.content)
+    try {
+      await createRevision(review.id, 1, validation.data.content)
+    } catch (err) {
+      // A review without any revision is unusable (comment/summary routes
+      // treat it as a data bug) — roll back the review row rather than
+      // leave it orphaned.
+      await deleteReview(review.id).catch(() => {})
+      throw err
+    }
     // notifyReviewer(review).catch(() => {}) // email sending disabled for now
 
     return NextResponse.json({
