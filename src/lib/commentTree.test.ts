@@ -5,6 +5,7 @@ import { buildCommentThreads, collectDescendantIds } from './commentTree'
 function makeComment(overrides: Partial<Comment> & Pick<Comment, 'id' | 'created_at'>): Comment {
   return {
     review_id: 'review-1',
+    revision_id: 'revision-1',
     parent_id: null,
     body: 'body',
     anchor_start: 0,

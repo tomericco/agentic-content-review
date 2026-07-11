@@ -13,7 +13,7 @@ const baseReview: Review = {
 }
 
 const comments: Comment[] = [
-  { id: 'c1', review_id: 'r1', parent_id: null, body: 'Too wordy', anchor_text: 'final version',
+  { id: 'c1', review_id: 'r1', revision_id: 'rev-1', parent_id: null, body: 'Too wordy', anchor_text: 'final version',
     anchor_start: 0, anchor_end: 13, author_name: null, created_at: '2026-06-30T00:30:00Z' },
 ]
 
@@ -50,12 +50,12 @@ describe('buildSummary', () => {
   it('renders replies as a flat list under their root, including a reply-to-a-reply', () => {
     const root = comments[0]
     const reply1: Comment = {
-      id: 'c2', review_id: 'r1', parent_id: 'c1', body: 'Agreed, will rewrite',
+      id: 'c2', review_id: 'r1', revision_id: 'rev-1', parent_id: 'c1', body: 'Agreed, will rewrite',
       anchor_start: null, anchor_end: null, anchor_text: null,
       author_name: 'Silent Otter', created_at: '2026-06-30T00:31:00Z',
     }
     const reply2: Comment = {
-      id: 'c3', review_id: 'r1', parent_id: 'c2', body: 'Thanks!', // replies to reply1, not root
+      id: 'c3', review_id: 'r1', revision_id: 'rev-1', parent_id: 'c2', body: 'Thanks!', // replies to reply1, not root
       anchor_start: null, anchor_end: null, anchor_text: null,
       author_name: 'Quick Falcon', created_at: '2026-06-30T00:32:00Z',
     }

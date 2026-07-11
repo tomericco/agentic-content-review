@@ -20,9 +20,18 @@ export interface Review {
   decided_at: string | null
 }
 
+export interface Revision {
+  id: string
+  review_id: string
+  revision_number: number
+  content: string
+  created_at: string
+}
+
 export interface Comment {
   id: string
   review_id: string
+  revision_id: string
   parent_id: string | null
   body: string
   anchor_start: number | null

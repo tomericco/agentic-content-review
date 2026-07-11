@@ -54,21 +54,36 @@ async function main() {
     return
   }
 
-  const { error: insertError } = await supabase.from('reviews').insert({
-    slug: SAMPLE_SLUG,
-    title: 'Dev sample review',
-    content: SAMPLE_CONTENT,
-    content_type: 'long_form',
-    context: 'Seeded by scripts/seed-dev.mjs — safe to comment on, edit, or decide freely.',
-    access: 'comment_and_edit',
-    agent_model: null,
-    author_email: 'dev-seed@example.com',
-    reviewer_email: 'dev-seed@example.com',
-    status: 'pending',
-  })
+  const { data: created, error: insertError } = await supabase
+    .from('reviews')
+    .insert({
+      slug: SAMPLE_SLUG,
+      title: 'Dev sample review',
+      content: SAMPLE_CONTENT,
+      content_type: 'long_form',
+      context: 'Seeded by scripts/seed-dev.mjs — safe to comment on, edit, or decide freely.',
+      access: 'comment_and_edit',
+      agent_model: null,
+      author_email: 'dev-seed@example.com',
+      reviewer_email: 'dev-seed@example.com',
+      status: 'pending',
+    })
+    .select()
+    .single()
 
   if (insertError) {
     console.error('[seed-dev] Failed to create sample review:', insertError.message)
+    return
+  }
+
+  const { error: revisionError } = await supabase.from('revisions').insert({
+    review_id: created.id,
+    revision_number: 1,
+    content: SAMPLE_CONTENT,
+  })
+
+  if (revisionError) {
+    console.error('[seed-dev] Failed to create sample revision:', revisionError.message)
     return
   }
 
