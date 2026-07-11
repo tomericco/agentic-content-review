@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import type { Review, Revision, Comment } from '@/types'
 import { buildCommentThreads, collectDescendantIds } from '@/lib/commentTree'
-import { nextRevisionIndex } from '@/lib/revisionNav'
+import { nextRevisionIndex, isTextEntryTarget } from '@/lib/revisionNav'
 import DecisionHeader from './DecisionHeader'
 import ContentEditor from './ContentEditor'
 import MarginalComments from './MarginalComments'
@@ -58,6 +58,24 @@ export default function ReviewShell({ review, revisions, initialComments }: Prop
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [decided, editedContent])
+
+  // Arrow-key revision navigation. Suppressed while typing (editor, inputs,
+  // comment composers) or while any modal/drawer is open, where arrows mean
+  // something else.
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      if (showApprove || showRequestChanges || showAgentContext) return
+      if (isTextEntryTarget(e.target)) return
+      const direction = e.key === 'ArrowLeft' ? 'prev' : 'next'
+      const target = nextRevisionIndex(revisionIndex, revisions.length, direction)
+      if (target === null) return
+      e.preventDefault()
+      goToRevision(target)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  })
 
   function handleContentChange(markdown: string) {
     if (!viewingLatest) return
