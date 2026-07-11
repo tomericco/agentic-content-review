@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import type { Review, Comment } from '@/types'
+import type { Review, Revision, Comment } from '@/types'
 import { buildCommentThreads, collectDescendantIds } from '@/lib/commentTree'
+import { nextRevisionIndex } from '@/lib/revisionNav'
 import DecisionHeader from './DecisionHeader'
 import ContentEditor from './ContentEditor'
 import MarginalComments from './MarginalComments'
@@ -13,6 +14,7 @@ import Button from './Button'
 
 interface Props {
   review: Review
+  revisions: Revision[]
   initialComments: Comment[]
 }
 
@@ -20,7 +22,7 @@ function wordCount(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length
 }
 
-export default function ReviewShell({ review, initialComments }: Props) {
+export default function ReviewShell({ review, revisions, initialComments }: Props) {
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const baselineContentRef = useRef<string | null>(null)
   const [comments, setComments] = useState<Comment[]>(initialComments)
@@ -33,6 +35,17 @@ export default function ReviewShell({ review, initialComments }: Props) {
   const [decided, setDecided] = useState(review.status !== 'pending')
   const [currentStatus, setCurrentStatus] = useState(review.status)
   const [copied, setCopied] = useState(false)
+
+  const [revisionIndex, setRevisionIndex] = useState(revisions.length - 1)
+
+  const currentRevision = revisions[revisionIndex]
+  const viewingLatest = revisionIndex === revisions.length - 1
+
+  function goToRevision(target: number) {
+    if (target < 0 || target >= revisions.length || target === revisionIndex) return
+    setRevisionIndex(target)
+    setActiveCommentId(null)
+  }
 
   useEffect(() => {
     // baselineContentRef is null until the editor fires its first onChange (which
@@ -47,6 +60,7 @@ export default function ReviewShell({ review, initialComments }: Props) {
   }, [decided, editedContent])
 
   function handleContentChange(markdown: string) {
+    if (!viewingLatest) return
     if (baselineContentRef.current === null) baselineContentRef.current = markdown
     setEditedContent(markdown)
   }
@@ -79,10 +93,15 @@ export default function ReviewShell({ review, initialComments }: Props) {
 
   // Only root (anchored) comments can be highlighted in the editor or listed
   // in the "Request Changes" preview — replies have no anchor of their own.
-  const rootComments = useMemo(() => comments.filter((c) => c.parent_id === null), [comments])
-  const threads = useMemo(() => buildCommentThreads(comments), [comments])
+  const revisionComments = useMemo(
+    () => comments.filter((c) => c.revision_id === currentRevision.id),
+    [comments, currentRevision.id]
+  )
+  const rootComments = useMemo(() => revisionComments.filter((c) => c.parent_id === null), [revisionComments])
+  const threads = useMemo(() => buildCommentThreads(revisionComments), [revisionComments])
 
-  const words = wordCount(editedContent)
+  const displayedContent = viewingLatest ? editedContent : currentRevision.content
+  const words = wordCount(displayedContent)
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center">
@@ -90,6 +109,15 @@ export default function ReviewShell({ review, initialComments }: Props) {
       <div className="sticky top-0 z-10 w-full flex flex-col items-center bg-white">
         <DecisionHeader
           review={{ ...review, status: currentStatus }}
+          revisionNumber={currentRevision.revision_number}
+          revisionCount={revisions.length}
+          revisionCreatedAt={currentRevision.created_at}
+          viewingLatest={viewingLatest}
+          onNavigateRevision={(direction) => {
+            const target = nextRevisionIndex(revisionIndex, revisions.length, direction)
+            if (target !== null) goToRevision(target)
+          }}
+          onBackToLatest={() => goToRevision(revisions.length - 1)}
           onApprove={() => setShowApprove(true)}
           onRequestChanges={() => setShowRequestChanges(true)}
           onOpenContext={() => setShowAgentContext(true)}
@@ -100,8 +128,9 @@ export default function ReviewShell({ review, initialComments }: Props) {
       {/* Centered article — relative so comments + popover can float right */}
       <div className="w-[680px] relative flex flex-col gap-6 py-10" ref={editorContainerRef}>
         <ContentEditor
-          content={editedContent}
-          editable={review.access === 'comment_and_edit' && !decided}
+          key={currentRevision.id}
+          content={displayedContent}
+          editable={review.access === 'comment_and_edit' && !decided && viewingLatest}
           comments={rootComments}
           activeCommentId={activeCommentId}
           onChange={handleContentChange}

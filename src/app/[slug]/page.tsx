@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getReviewBySlug, getCommentsByReviewId } from '@/lib/db'
+import { getReviewBySlug, getCommentsByReviewId, getRevisionsByReviewId } from '@/lib/db'
 import ReviewShell from '@/components/ReviewShell'
 
 export const metadata: Metadata = {
@@ -16,7 +16,10 @@ export default async function ReviewPage({ params }: { params: Promise<{ slug: s
   const review = await getReviewBySlug(slug)
   if (!review) notFound()
 
-  const comments = await getCommentsByReviewId(review.id)
+  const [revisions, comments] = await Promise.all([
+    getRevisionsByReviewId(review.id),
+    getCommentsByReviewId(review.id),
+  ])
 
-  return <ReviewShell review={review} initialComments={comments} />
+  return <ReviewShell review={review} revisions={revisions} initialComments={comments} />
 }
