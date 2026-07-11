@@ -138,9 +138,11 @@ export default function ReviewShell({ review, revisions, initialComments }: Prop
           onEditorUpdate={() => setEditorVersion(v => v + 1)}
           onActiveCommentChange={setActiveCommentId}
           reviewSlug={review.slug}
+          revisionId={currentRevision.id}
+          commentingEnabled={viewingLatest}
         />
 
-        {decided && (
+        {decided && viewingLatest && (
           <div className="flex flex-col gap-2 items-start">
             <p className="text-[13px] text-[#6b7280] font-ui">
               Paste this into your agent to continue:
@@ -163,6 +165,7 @@ export default function ReviewShell({ review, revisions, initialComments }: Prop
           onDeleteComment={handleDeleteComment}
           onSetActiveComment={setActiveCommentId}
           decided={decided}
+          readOnly={!viewingLatest}
         />
       </div>
 

@@ -38,6 +38,7 @@ interface Props {
   onDeleteComment: (id: string) => void
   onSetActiveComment: (id: string | null) => void
   decided: boolean
+  readOnly: boolean
 }
 
 interface PositionedThread extends CommentThread {
@@ -65,6 +66,7 @@ function CommentRow({
   onDelete,
   onReply,
   showAnchor,
+  readOnly,
 }: {
   comment: Comment
   reviewSlug: string
@@ -72,6 +74,7 @@ function CommentRow({
   onDelete: (id: string) => void
   onReply: (id: string) => void
   showAnchor: boolean
+  readOnly: boolean
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(comment.body)
@@ -164,30 +167,32 @@ function CommentRow({
                 Grid overlay (not absolute positioning) so the box sizes to
                 whichever layer is wider, instead of clipping to the name's width. */}
             <div className="grid justify-items-end">
-              <span className="col-start-1 row-start-1 inline-flex items-center gap-1.5 opacity-100 group-hover:opacity-0 group-hover:pointer-events-none transition-opacity">
+              <span className={`col-start-1 row-start-1 inline-flex items-center gap-1.5 ${readOnly ? '' : 'opacity-100 group-hover:opacity-0 group-hover:pointer-events-none transition-opacity'}`}>
                 <Avatar name={authorName} />
                 <span className="text-[11px] font-medium text-[#374151] truncate">{authorName}</span>
               </span>
-              <div className="col-start-1 row-start-1 flex items-center gap-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity">
-                <button
-                  className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
-                  onClick={() => onReply(String(comment.id))}
-                >
-                  Reply
-                </button>
-                <button
-                  className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
-                  onClick={() => setEditing(true)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="text-[11px] text-[#6b7280] hover:text-red-500 cursor-pointer"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </button>
-              </div>
+              {!readOnly && (
+                <div className="col-start-1 row-start-1 flex items-center gap-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity">
+                  <button
+                    className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
+                    onClick={() => onReply(String(comment.id))}
+                  >
+                    Reply
+                  </button>
+                  <button
+                    className="text-[11px] text-[#6b7280] hover:text-[#000000] cursor-pointer"
+                    onClick={() => setEditing(true)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="text-[11px] text-[#6b7280] hover:text-red-500 cursor-pointer"
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -275,6 +280,7 @@ function ThreadCard({
   thread,
   reviewSlug,
   decided,
+  readOnly,
   onAddComment,
   onUpdateComment,
   onDeleteComment,
@@ -283,6 +289,7 @@ function ThreadCard({
   thread: PositionedThread
   reviewSlug: string
   decided: boolean
+  readOnly: boolean
   onAddComment: (comment: Comment) => void
   onUpdateComment: (updated: Comment) => void
   onDeleteComment: (id: string) => void
@@ -324,6 +331,7 @@ function ThreadCard({
         onDelete={onDeleteComment}
         onReply={setReplyingTo}
         showAnchor
+        readOnly={readOnly}
       />
       {thread.replies.map((reply) => (
         <CommentRow
@@ -334,16 +342,17 @@ function ThreadCard({
           onDelete={onDeleteComment}
           onReply={setReplyingTo}
           showAnchor={false}
+          readOnly={readOnly}
         />
       ))}
-      {!decided && replyingTo && (
+      {!decided && !readOnly && replyingTo && (
         <ReplyComposer onSubmit={submitReply} onCancel={() => setReplyingTo(null)} />
       )}
     </div>
   )
 }
 
-export default function MarginalComments({ threads, containerRef, editorVersion, activeCommentId, reviewSlug, onAddComment, onUpdateComment, onDeleteComment, onSetActiveComment, decided }: Props) {
+export default function MarginalComments({ threads, containerRef, editorVersion, activeCommentId, reviewSlug, onAddComment, onUpdateComment, onDeleteComment, onSetActiveComment, decided, readOnly }: Props) {
   const [anchorTops, setAnchorTops] = useState<Record<string, number>>({})
   const [heights, setHeights] = useState<Record<string, number>>({})
 
@@ -403,6 +412,7 @@ export default function MarginalComments({ threads, containerRef, editorVersion,
               thread={thread}
               reviewSlug={reviewSlug}
               decided={decided}
+              readOnly={readOnly}
               onAddComment={onAddComment}
               onUpdateComment={onUpdateComment}
               onDeleteComment={onDeleteComment}

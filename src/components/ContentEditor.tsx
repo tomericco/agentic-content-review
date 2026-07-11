@@ -23,6 +23,8 @@ interface Props {
   onEditorUpdate: () => void
   onActiveCommentChange: (id: string | null) => void
   reviewSlug: string
+  revisionId: string
+  commentingEnabled: boolean
 }
 
 interface PendingComment {
@@ -32,7 +34,7 @@ interface PendingComment {
   viewportTop: number
 }
 
-export default function ContentEditor({ content, editable, comments, activeCommentId, onChange, onAddComment, onEditorUpdate, onActiveCommentChange, reviewSlug }: Props) {
+export default function ContentEditor({ content, editable, comments, activeCommentId, onChange, onAddComment, onEditorUpdate, onActiveCommentChange, reviewSlug, revisionId, commentingEnabled }: Props) {
   const [pendingComment, setPendingComment] = useState<PendingComment | null>(null)
   const savedSelectionRef = useRef<{ from: number; to: number; text: string } | null>(null)
   const selectionRectRef = useRef<DOMRect | null>(null)
@@ -138,6 +140,7 @@ export default function ContentEditor({ content, editable, comments, activeComme
         anchor_end: pendingComment.anchorEnd,
         anchor_text: pendingComment.anchorText,
         author_name: authorName || null,
+        revision_id: revisionId,
       }),
     })
     if (!res.ok) return
@@ -166,11 +169,13 @@ export default function ContentEditor({ content, editable, comments, activeComme
           .comment-highlight-image[data-comment-id="${activeCommentId}"] { outline-color: #f6b519; }
         `}</style>
       )}
-      <FloatingToolbar
-        editor={editor}
-        editable={editable}
-        onCommentClick={handleCommentClick}
-      />
+      {commentingEnabled && (
+        <FloatingToolbar
+          editor={editor}
+          editable={editable}
+          onCommentClick={handleCommentClick}
+        />
+      )}
 
       <EditorContent editor={editor} />
 
