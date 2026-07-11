@@ -11,11 +11,15 @@ function authorSuffix(comment: Comment): string {
   return comment.author_name ? ` — ${comment.author_name}` : ''
 }
 
-export function buildSummary(review: Review, comments: Comment[], resubmitUrl?: string): string {
+export function buildSummary(review: Review, comments: Comment[], resubmitUrl?: string, revisionNumber?: number): string {
   const lines: string[] = []
 
   lines.push(`# Amend Summary: ${review.title}`, '')
   lines.push(`**Status:** ${STATUS_LABELS[review.status] ?? review.status}`)
+
+  if (revisionNumber !== undefined) {
+    lines.push(`**Revision:** ${revisionNumber}`)
+  }
 
   if (review.decided_at) {
     lines.push(`**Decided at:** ${review.decided_at}`)

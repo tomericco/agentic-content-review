@@ -105,4 +105,14 @@ describe('buildSummary', () => {
     expect(s).toContain('**Status:** Pending')
     expect(s).not.toContain('## Final Content')
   })
+
+  it('includes the revision number when provided', () => {
+    const s = buildSummary(baseReview, [], undefined, 2)
+    expect(s).toContain('**Revision:** 2')
+  })
+
+  it('omits the revision line when no revision number is provided', () => {
+    const s = buildSummary(baseReview, [])
+    expect(s).not.toContain('**Revision:**')
+  })
 })
