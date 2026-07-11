@@ -46,6 +46,12 @@ export default function ReviewShell({ review, revisions, initialComments }: Prop
 
   function goToRevision(target: number) {
     if (target < 0 || target >= revisions.length || target === revisionIndex) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // Reduced motion: switch instantly — no classes, no timers.
+      setRevisionIndex(target)
+      setActiveCommentId(null)
+      return
+    }
     if (animTimerRef.current !== null) return // ignore input mid-transition
     const forward = target > revisionIndex
     setRevisionAnim(forward ? 'rev-exit-left' : 'rev-exit-right')
