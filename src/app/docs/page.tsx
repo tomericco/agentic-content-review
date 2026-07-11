@@ -31,6 +31,7 @@ const SUMMARY_EXAMPLE = `GET ${BASE}/api/amend/[slug]/summary`;
 const SUMMARY_RESPONSE = `# Amend Summary: Q2 product update
 
 **Status:** approved
+**Revision:** 2
 **Decided at:** 2026-07-01T10:23:00Z
 
 ## Final Content
@@ -48,6 +49,7 @@ Approved with minor edits applied inline.`;
 const SUMMARY_RESPONSE_CHANGES_REQUESTED = `# Amend Summary: Q2 product update
 
 **Status:** changes_requested
+**Revision:** 1
 
 ## Comments (1)
 
@@ -369,8 +371,9 @@ export default function DocsPage() {
               <p className="text-[15px] leading-relaxed text-zinc-700 mb-4">
                 Send a revised draft after changes were requested. Resets the review back to <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">pending</code> so
                 the reviewer sees the new version. Only valid when the review isn&apos;t currently <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-[13px]">pending</code>.
-                This also clears all existing comments — they anchor to text/image positions in the old content,
-                which no longer apply to the new draft.
+                This creates a new revision — the old draft and its comments stay intact and browsable from the
+                amend page. The summary only reports feedback on the latest revision, so your agent never has
+                to sift through comments already resolved by earlier drafts.
               </p>
               <CodeBlock code={RESUBMIT_EXAMPLE} />
               <p className="text-[13px] font-semibold text-zinc-500 uppercase tracking-wide mb-3">
