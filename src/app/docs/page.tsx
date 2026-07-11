@@ -75,7 +75,8 @@ const RESUBMIT_RESPONSE = `{
   "amend_url": "${BASE}/abc123",
   "summary_url": "${BASE}/api/amend/abc123/summary",
   "resubmit_url": "${BASE}/api/amend/abc123/resubmit",
-  "status": "pending"
+  "status": "pending",
+  "revision": 2
 }`;
 
 const WEBHOOK_PAYLOAD = `POST https://your-app.com/webhook/amend

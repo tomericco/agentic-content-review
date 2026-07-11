@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getReviewBySlug, getCommentById, createComment } from '@/lib/db'
+import { getReviewBySlug, getCommentById, createComment, getLatestRevision } from '@/lib/db'
 
 const MAX_AUTHOR_NAME_LENGTH = 60
 
@@ -27,6 +27,15 @@ export async function POST(
       return NextResponse.json({ error: 'Missing required comment fields', code: 'missing_comment_fields' }, { status: 400 })
     }
 
+    const latest = await getLatestRevision(review.id)
+    if (!latest) {
+      // Every review has a revision after migration 0004; missing one is a data bug.
+      throw new Error(`Review ${review.id} has no revisions`)
+    }
+    if (typeof b.revision_id === 'string' && b.revision_id !== latest.id) {
+      return NextResponse.json({ error: 'Comments can only be added to the latest revision', code: 'revision_not_latest' }, { status: 409 })
+    }
+
     let authorName: string | null = null
     if (b.author_name !== undefined && b.author_name !== null) {
       if (typeof b.author_name !== 'string') {
@@ -49,8 +58,11 @@ export async function POST(
       if (parent.review_id !== review.id) {
         return NextResponse.json({ error: 'Parent comment belongs to a different review', code: 'parent_comment_wrong_review' }, { status: 400 })
       }
+      if (parent.revision_id !== latest.id) {
+        return NextResponse.json({ error: 'Comments can only be added to the latest revision', code: 'revision_not_latest' }, { status: 409 })
+      }
 
-      const comment = await createComment(review.id, {
+      const comment = await createComment(review.id, latest.id, {
         body: b.body as string,
         parent_id: parentId,
         anchor_start: null,
@@ -66,7 +78,7 @@ export async function POST(
       return NextResponse.json({ error: 'Missing required comment fields', code: 'missing_comment_fields' }, { status: 400 })
     }
 
-    const comment = await createComment(review.id, {
+    const comment = await createComment(review.id, latest.id, {
       body: b.body as string,
       parent_id: null,
       anchor_start: b.anchor_start as number,

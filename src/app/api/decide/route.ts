@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { validateDecide } from '@/lib/validate'
-import { getReviewBySlug, updateReviewDecision, getCommentsByReviewId } from '@/lib/db'
+import { getReviewBySlug, updateReviewDecision, getCommentsByRevisionId, getLatestRevision } from '@/lib/db'
 // import { notifyAuthor } from '@/lib/email' // email sending disabled for now
 
 export async function POST(req: NextRequest) {
@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
     }
 
     const { decision, changes_requested } = validation.data
-    const comments = await getCommentsByReviewId(review.id)
+    const latest = await getLatestRevision(review.id)
+    const comments = latest ? await getCommentsByRevisionId(latest.id) : []
 
     if (decision === 'changes_requested' && comments.length === 0 && !changes_requested) {
       return NextResponse.json(

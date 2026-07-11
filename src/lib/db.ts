@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Review, Comment } from '@/types'
+import type { Review, Comment, Revision } from '@/types'
 import type { UploadInput, DecideInput } from './validate'
 
 const supabase = createClient(
@@ -55,6 +55,52 @@ export async function getReviewBySlug(slug: string): Promise<Review | null> {
   return data as Review | null
 }
 
+export async function createRevision(reviewId: string, revisionNumber: number, content: string): Promise<Revision> {
+  const { data, error } = await supabase
+    .from('revisions')
+    .insert({ review_id: reviewId, revision_number: revisionNumber, content })
+    .select()
+    .single()
+
+  if (error) throw new Error(`DB error creating revision: ${error.message}`)
+  return data as Revision
+}
+
+export async function getRevisionsByReviewId(reviewId: string): Promise<Revision[]> {
+  const { data, error } = await supabase
+    .from('revisions')
+    .select()
+    .eq('review_id', reviewId)
+    .order('revision_number', { ascending: true })
+
+  if (error) throw new Error(`DB error fetching revisions: ${error.message}`)
+  return (data ?? []) as Revision[]
+}
+
+export async function getLatestRevision(reviewId: string): Promise<Revision | null> {
+  const { data, error } = await supabase
+    .from('revisions')
+    .select()
+    .eq('review_id', reviewId)
+    .order('revision_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) throw new Error(`DB error fetching latest revision: ${error.message}`)
+  return data as Revision | null
+}
+
+export async function getCommentsByRevisionId(revisionId: string): Promise<Comment[]> {
+  const { data, error } = await supabase
+    .from('comments')
+    .select()
+    .eq('revision_id', revisionId)
+    .order('created_at', { ascending: true })
+
+  if (error) throw new Error(`DB error fetching comments: ${error.message}`)
+  return (data ?? []) as Comment[]
+}
+
 export async function updateReviewDecision(
   id: string,
   input: DecideInput
@@ -81,10 +127,10 @@ export async function updateReviewDecision(
   return data as Review
 }
 
-export async function createComment(reviewId: string, input: CommentInput): Promise<Comment> {
+export async function createComment(reviewId: string, revisionId: string, input: CommentInput): Promise<Comment> {
   const { data, error } = await supabase
     .from('comments')
-    .insert({ review_id: reviewId, ...input })
+    .insert({ review_id: reviewId, revision_id: revisionId, ...input })
     .select()
     .single()
 
@@ -130,15 +176,10 @@ export async function getCommentsByReviewId(reviewId: string): Promise<Comment[]
   return (data ?? []) as Comment[]
 }
 
-// Resubmitting replaces the content entirely, so existing comments' anchor
-// positions (and any text-based fallback re-anchoring) no longer correspond
-// to anything meaningful in the new document — clear them for a clean slate.
-export async function deleteCommentsByReviewId(reviewId: string): Promise<void> {
-  const { error } = await supabase.from('comments').delete().eq('review_id', reviewId)
-  if (error) throw new Error(`DB error deleting comments: ${error.message}`)
-}
+export async function resubmitReview(id: string, content: string): Promise<{ review: Review; revision: Revision }> {
+  const latest = await getLatestRevision(id)
+  const revision = await createRevision(id, (latest?.revision_number ?? 0) + 1, content)
 
-export async function resubmitReview(id: string, content: string): Promise<Review> {
   const { data, error } = await supabase
     .from('reviews')
     .update({
@@ -152,5 +193,5 @@ export async function resubmitReview(id: string, content: string): Promise<Revie
     .select()
     .single()
   if (error) throw new Error(`DB error resubmitting review: ${error.message}`)
-  return data as Review
+  return { review: data as Review, revision }
 }

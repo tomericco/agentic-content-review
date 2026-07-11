@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { getReviewBySlug, resubmitReview, deleteCommentsByReviewId } from '@/lib/db'
+import { getReviewBySlug, resubmitReview } from '@/lib/db'
 import { SITE_URL } from '@/lib/site'
 // import { notifyReviewer } from '@/lib/email' // email sending disabled for now
 
@@ -28,11 +28,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Missing required field: content', code: 'missing_field:content' }, { status: 400 })
     }
 
-    const updated = await resubmitReview(review.id, content)
-
-    // The new content invalidates every existing comment's anchor — clear
-    // them so the reviewer starts the next round with a clean document.
-    await deleteCommentsByReviewId(review.id)
+    const { review: updated, revision } = await resubmitReview(review.id, content)
 
     // notifyReviewer(updated).catch(() => {}) // email sending disabled for now
 
@@ -44,6 +40,7 @@ export async function PATCH(
       summary_url: `${SITE_URL}/api/amend/${updated.slug}/summary`,
       resubmit_url: `${SITE_URL}/api/amend/${updated.slug}/resubmit`,
       status: updated.status,
+      revision: revision.revision_number,
     })
   } catch (err) {
     console.error(err)

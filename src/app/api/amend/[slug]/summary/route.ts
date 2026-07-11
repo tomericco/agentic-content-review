@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getReviewBySlug, getCommentsByReviewId } from '@/lib/db'
+import { getReviewBySlug, getCommentsByReviewId, getCommentsByRevisionId, getLatestRevision } from '@/lib/db'
 import { buildSummary } from '@/lib/summary'
 import { SITE_URL } from '@/lib/site'
 
@@ -14,9 +14,12 @@ export async function GET(
       return NextResponse.json({ error: 'Review not found', code: 'review_not_found' }, { status: 404 })
     }
 
-    const comments = await getCommentsByReviewId(review.id)
+    const latest = await getLatestRevision(review.id)
+    const comments = latest
+      ? await getCommentsByRevisionId(latest.id)
+      : await getCommentsByReviewId(review.id)
     const resubmitUrl = `${SITE_URL}/api/amend/${review.slug}/resubmit`
-    const summary = buildSummary(review, comments, resubmitUrl)
+    const summary = buildSummary(review, comments, resubmitUrl, latest?.revision_number)
 
     return new NextResponse(summary, {
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
